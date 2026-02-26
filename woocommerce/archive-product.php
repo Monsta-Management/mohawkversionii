@@ -9,9 +9,20 @@ $enable_fix_sidebar_menu = get_field( 'enable_fix_sidebar_menu', 'option' );
 $totalproducts = wc_get_loop_prop( 'total' ) ? wc_get_loop_prop( 'total' ) : $wp_query->post_count;
 $limit = 24;
 
-// Legacy infinite_result handler removed — infinite scroll now uses
-// the mohawk_infinite_scroll AJAX endpoint in functions.php for faster,
-// lighter responses that don't load the full template stack.
+// Lightweight infinite scroll fallback: when JS fetches with ?infinite_result=1,
+// return ONLY the product card HTML (no header/footer/sidebar), then exit.
+// This is the fallback for when wp_localize_script (mohawkInfinite) isn't available
+// (e.g. due to server-side caching). The preferred path is the mohawk_infinite_scroll
+// AJAX endpoint in functions.php.
+if ( ! empty( $_GET['infinite_result'] ) ) {
+    echo '<div class="row row-products">';
+    while ( have_posts() ) {
+        the_post();
+        wc_get_template_part( 'content', 'product-card' );
+    }
+    echo '</div>';
+    exit;
+}
 
 if ( isset($_GET['orderby']) && $_GET['orderby'] === 'price-high-to-low' ) {
     $current_term = '';

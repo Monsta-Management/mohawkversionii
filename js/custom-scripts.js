@@ -1109,100 +1109,248 @@
     
     function productsInfiniteResult() {
         var target = $('.infinite-wrap');
+        if (!target.length) return;
 
-        if (!target.length || typeof mohawkInfinite === 'undefined') return;
+        // --- Dual-mode setup ---
+        // Mode A: mohawkInfinite is available (proper AJAX endpoint).
+        // Mode B: fallback — scrape pagination links from the DOM.
+        var useAjax = (typeof mohawkInfinite !== 'undefined');
 
-        var currentPage = parseInt(mohawkInfinite.current_page, 10) || 1;
-        var maxPages    = parseInt(mohawkInfinite.max_pages, 10) || 1;
-        var isLoading   = false;
+        var currentPage, maxPages;
 
-        // If we're already on the last page, mark as done immediately.
+        if (useAjax) {
+            currentPage = parseInt(mohawkInfinite.current_page, 10) || 1;
+            maxPages    = parseInt(mohawkInfinite.max_pages, 10) || 1;
+        } else {
+            // Fallback: determine current page from pagination or default to 1.
+            currentPage = 1;
+            // Estimate max pages from pagination links in the DOM.
+            var paginationLinks = $('.pagination-wrap, .custom-pagination, .pagination-c');
+            var lastPageNum = 1;
+            paginationLinks.find('a.page-numbers, span.page-numbers').each(function () {
+                var num = parseInt($(this).text(), 10);
+                if (!isNaN(num) && num > lastPageNum) lastPageNum = num;
+            });
+            maxPages = lastPageNum;
+        }
+
+        var isLoading      = false;
+        var prefetchedData = null;
+        var isDone         = false;
+
         if (currentPage >= maxPages) {
             target.addClass('infinite-end');
             return;
         }
 
-        var loaderEl = target.find('.infinite-loader');
+        var loaderEl       = target.find('.infinite-loader');
         var loadingSpinner = target.find('.loading-container');
 
+        // Build the URL for a given page in fallback mode.
+        function buildFallbackUrl(page) {
+            var url;
+
+            // Try to find the "next" pagination link first.
+            var nextLink = $('.pagination-wrap a.next, .custom-pagination a.next, .pagination-c a.next');
+
+            if (nextLink.length) {
+                url = nextLink.attr('href');
+                // Replace the page number in the URL with the target page.
+                url = url.replace(/\/page\/\d+\//, '/page/' + page + '/');
+                url = url.replace(/[?&]paged=\d+/, function(m) {
+                    return m.charAt(0) + 'paged=' + page;
+                });
+            } else {
+                // Construct from current URL — strip any existing page number,
+                // then append /page/N/ before the query string.
+                var path = window.location.pathname.replace(/\/page\/\d+\/?/, '/');
+                if (path.charAt(path.length - 1) !== '/') path += '/';
+                url = path + 'page/' + page + '/' + window.location.search;
+            }
+
+            // Append infinite_result flag.
+            var sep = url.indexOf('?') !== -1 ? '&' : '?';
+            return url + sep + 'infinite_result=1';
+        }
+
+        // Fetch a page of products.
+        function fetchPage(page) {
+            if (useAjax) {
+                return $.ajax({
+                    url: mohawkInfinite.ajaxurl,
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {
+                        action:   'mohawk_infinite_scroll',
+                        nonce:    mohawkInfinite.nonce,
+                        paged:    page,
+                        per_page: mohawkInfinite.per_page,
+                        orderby:  mohawkInfinite.orderby,
+                        category: mohawkInfinite.category
+                    }
+                });
+            } else {
+                // Fallback: fetch the page URL, parse product HTML from response.
+                var url = buildFallbackUrl(page);
+                var deferred = $.Deferred();
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    dataType: 'html'
+                }).done(function (html) {
+                    var tempContainer = $('<div>').html(html);
+                    var products = tempContainer.find('.row-products').children();
+                    if (products.length) {
+                        // Try to get max pages from the response pagination.
+                        var respMaxPages = maxPages;
+                        tempContainer.find('a.page-numbers, span.page-numbers').each(function () {
+                            var num = parseInt($(this).text(), 10);
+                            if (!isNaN(num) && num > respMaxPages) respMaxPages = num;
+                        });
+                        deferred.resolve({
+                            success: true,
+                            data: {
+                                html: products,
+                                max_pages: respMaxPages,
+                                page: page
+                            }
+                        });
+                    } else {
+                        deferred.resolve({ success: false });
+                    }
+                }).fail(function () {
+                    deferred.reject();
+                });
+                return deferred.promise();
+            }
+        }
+
+        function prefetchNextPage() {
+            var nextPage = currentPage + 1;
+            if (nextPage > maxPages || prefetchedData) return;
+            fetchPage(nextPage).done(function (response) {
+                var data = useAjax ? response.data : (response.success ? response.data : null);
+                if (data && data.html) {
+                    prefetchedData = data;
+                }
+            });
+        }
+
+        function appendProducts(data) {
+            if (data && data.html) {
+                if (useAjax) {
+                    target.find('.row-products').append($(data.html));
+                } else {
+                    // Fallback: data.html is already jQuery elements.
+                    target.find('.row-products').append(data.html);
+                }
+                maxPages = parseInt(data.max_pages, 10) || maxPages;
+            }
+        }
+
+        function markDone() {
+            isDone = true;
+            target.addClass('infinite-end');
+            if (observer) observer.disconnect();
+            $(window).off('scroll.infiniteScroll');
+        }
+
         function loadNextPage() {
-            if (isLoading || currentPage >= maxPages) return;
+            if (isLoading || isDone || currentPage >= maxPages) return;
 
             isLoading = true;
             target.addClass('infinite-process');
             loadingSpinner.removeClass('d-none hide');
-
             currentPage++;
 
-            $.ajax({
-                url: mohawkInfinite.ajaxurl,
-                type: 'GET',
-                dataType: 'json',
-                data: {
-                    action:   'mohawk_infinite_scroll',
-                    nonce:    mohawkInfinite.nonce,
-                    paged:    currentPage,
-                    per_page: mohawkInfinite.per_page,
-                    orderby:  mohawkInfinite.orderby,
-                    category: mohawkInfinite.category
-                },
-                success: function (response) {
-                    if (response.success && response.data.html) {
-                        var $newItems = $(response.data.html);
-                        target.find('.row-products').append($newItems);
+            if (prefetchedData) {
+                var cached = prefetchedData;
+                prefetchedData = null;
+                appendProducts(cached);
+                finishLoad();
+                return;
+            }
 
-                        // Update max pages in case the server corrected it.
-                        maxPages = parseInt(response.data.max_pages, 10) || maxPages;
-                    }
-
-                    if (currentPage >= maxPages) {
-                        target.addClass('infinite-end');
-                        if (observer) observer.disconnect();
-                    }
-                },
-                error: function () {
-                    // Roll back page so user can retry on next scroll.
+            fetchPage(currentPage)
+                .done(function (response) {
+                    if (response.success) appendProducts(response.data);
+                })
+                .fail(function () {
                     currentPage--;
-                },
-                complete: function () {
-                    isLoading = false;
-                    target.removeClass('infinite-process');
-                    loadingSpinner.addClass('d-none hide');
-                }
-            });
+                })
+                .always(function () {
+                    finishLoad();
+                });
         }
 
-        // Use IntersectionObserver for efficient, jank-free scroll detection.
-        // rootMargin '0px 0px 600px 0px' triggers 600px BEFORE the loader is visible.
+        function finishLoad() {
+            isLoading = false;
+            target.removeClass('infinite-process');
+            loadingSpinner.addClass('d-none hide');
+
+            if (currentPage >= maxPages) {
+                markDone();
+            } else {
+                prefetchNextPage();
+            }
+        }
+
+        // Check if loader is close enough to viewport to trigger loading.
+        // Uses getBoundingClientRect for reliability — works regardless
+        // of opacity, transforms, or layout shifts.
+        function isLoaderNearViewport() {
+            if (!loaderEl.length) return false;
+            var rect = loaderEl[0].getBoundingClientRect();
+            // Trigger 2000px before the loader comes into view.
+            return rect.top <= window.innerHeight + 2000;
+        }
+
+        // --- Triple detection: IntersectionObserver + scroll + interval ---
+        // All run in parallel to guarantee the trigger fires early.
+
         var observer = null;
 
+        // 1) IntersectionObserver with very large rootMargin.
         if ('IntersectionObserver' in window && loaderEl.length) {
             observer = new IntersectionObserver(function (entries) {
-                if (entries[0].isIntersecting) {
+                if (entries[0].isIntersecting && !isDone) {
                     loadNextPage();
                 }
             }, {
-                rootMargin: '0px 0px 600px 0px',
+                rootMargin: '0px 0px 2500px 0px',
                 threshold: 0
             });
-
             observer.observe(loaderEl[0]);
-        } else {
-            // Fallback: throttled scroll listener for older browsers.
-            var scrollTimer = null;
-            $(window).on('scroll.infiniteScroll', function () {
-                if (scrollTimer) return;
-                scrollTimer = setTimeout(function () {
-                    scrollTimer = null;
-                    if (!loaderEl.length) return;
-                    var loaderTop = loaderEl.offset().top;
-                    var scrollBottom = $(window).scrollTop() + $(window).height();
-                    if (scrollBottom >= loaderTop - 600) {
-                        loadNextPage();
-                    }
-                }, 100);
-            });
         }
+
+        // 2) Scroll listener as backup (throttled to 100ms).
+        var scrollTimer = null;
+        $(window).on('scroll.infiniteScroll', function () {
+            if (scrollTimer || isDone) return;
+            scrollTimer = setTimeout(function () {
+                scrollTimer = null;
+                if (isLoaderNearViewport()) loadNextPage();
+            }, 100);
+        });
+
+        // 3) Polling interval — catches edge cases where scroll events
+        //    don't fire (e.g. container revealed via opacity transition,
+        //    resize, or programmatic scroll).
+        var pollInterval = setInterval(function () {
+            if (isDone) { clearInterval(pollInterval); return; }
+            if (isLoaderNearViewport()) loadNextPage();
+        }, 500);
+
+        // 4) Prefetch page 2 immediately on init.
+        prefetchNextPage();
+
+        // 5) Run initial checks at multiple delays to catch various
+        //    DOM readiness states (especially the opacity:0 sidebar reveal).
+        [100, 300, 600, 1000].forEach(function (delay) {
+            setTimeout(function () {
+                if (isLoaderNearViewport() && !isDone) loadNextPage();
+            }, delay);
+        });
     }
     
     function productModalAttributeDisplay() {
