@@ -5301,6 +5301,20 @@ table.shop_table_responsive tr td {
     display: block !important; }
     .row_product_result .infinite-wrap.infinite-process .loading-container img {
       width: auto !important; }
+  .row_product_result .infinite-wrap .infinite-loader {
+    padding: 2em 0;
+    color: #888;
+    font-size: 0.95em;
+    transition: opacity 0.3s ease; }
+  .row_product_result .infinite-wrap.infinite-process .infinite-loader {
+    opacity: 1; }
+  .row_product_result .infinite-wrap .loading-container {
+    margin-bottom: 0.5em; }
+  @keyframes infinitePulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; } }
+  .row_product_result .infinite-wrap.infinite-process .infinite-loader {
+    animation: infinitePulse 1.5s ease-in-out infinite; }
   .row_product_result .infinite-wrap.infinite-end .infinite-loader {
     display: none; }
   .row_product_result .archive-header .page-title {

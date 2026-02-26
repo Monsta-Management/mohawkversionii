@@ -1109,51 +1109,98 @@
     
     function productsInfiniteResult() {
         var target = $('.infinite-wrap');
-    
-        if (target.length) {
-            $(window).scroll(function () {
-                var targetInfinite = target.not('.infinite-process');
-    
-                if (targetInfinite.length) {
-                    var hT = targetInfinite.offset().top,
-                        hH = targetInfinite.outerHeight(),
-                        wH = $(window).height(),
-                        wS = $(this).scrollTop();
-                    if (wS > (hT + hH - wH)) {
-                        target.addClass('infinite-process');
-    
-                        var paginationEl = $('.pagination');
-                        var currentNav = paginationEl.find('.current');
-                        var nextNav = currentNav.next('a:not(.next)').length ? currentNav.next('a:not(.next)') : false;
-                        var nextHref = nextNav ? nextNav.attr('href') + '?infinite_result=1' : false;
-    
-                        if (nextHref) {
-                            $.ajax({
-                                url: nextHref,
-                                type: 'get',
-                                success: function (result_html) {
-                                    // Create a temporary container to hold the result HTML.
-                                    var tempContainer = $('<div></div>').html(result_html);
-                                    
-                                    if (tempContainer.find('.row-products').length) {
-                                        // Extract only the relevant product listings.
-                                        var newProducts = tempContainer.find('.row-products').children();
-                                        target.find('.row-products').append(newProducts);
-                                    } else {
-                                        target.find('.row-products').append(result_html);
-                                    }
-    
-                                    target.removeClass('infinite-process');
-                                    
-                                    currentNav.removeClass('current');
-                                    nextNav.addClass('current');
-                                }
-                            });
-                        } else {
-                            target.addClass('infinite-end');
-                        }
+
+        if (!target.length || typeof mohawkInfinite === 'undefined') return;
+
+        var currentPage = parseInt(mohawkInfinite.current_page, 10) || 1;
+        var maxPages    = parseInt(mohawkInfinite.max_pages, 10) || 1;
+        var isLoading   = false;
+
+        // If we're already on the last page, mark as done immediately.
+        if (currentPage >= maxPages) {
+            target.addClass('infinite-end');
+            return;
+        }
+
+        var loaderEl = target.find('.infinite-loader');
+        var loadingSpinner = target.find('.loading-container');
+
+        function loadNextPage() {
+            if (isLoading || currentPage >= maxPages) return;
+
+            isLoading = true;
+            target.addClass('infinite-process');
+            loadingSpinner.removeClass('d-none hide');
+
+            currentPage++;
+
+            $.ajax({
+                url: mohawkInfinite.ajaxurl,
+                type: 'GET',
+                dataType: 'json',
+                data: {
+                    action:   'mohawk_infinite_scroll',
+                    nonce:    mohawkInfinite.nonce,
+                    paged:    currentPage,
+                    per_page: mohawkInfinite.per_page,
+                    orderby:  mohawkInfinite.orderby,
+                    category: mohawkInfinite.category
+                },
+                success: function (response) {
+                    if (response.success && response.data.html) {
+                        var $newItems = $(response.data.html);
+                        target.find('.row-products').append($newItems);
+
+                        // Update max pages in case the server corrected it.
+                        maxPages = parseInt(response.data.max_pages, 10) || maxPages;
                     }
+
+                    if (currentPage >= maxPages) {
+                        target.addClass('infinite-end');
+                        if (observer) observer.disconnect();
+                    }
+                },
+                error: function () {
+                    // Roll back page so user can retry on next scroll.
+                    currentPage--;
+                },
+                complete: function () {
+                    isLoading = false;
+                    target.removeClass('infinite-process');
+                    loadingSpinner.addClass('d-none hide');
                 }
+            });
+        }
+
+        // Use IntersectionObserver for efficient, jank-free scroll detection.
+        // rootMargin '0px 0px 600px 0px' triggers 600px BEFORE the loader is visible.
+        var observer = null;
+
+        if ('IntersectionObserver' in window && loaderEl.length) {
+            observer = new IntersectionObserver(function (entries) {
+                if (entries[0].isIntersecting) {
+                    loadNextPage();
+                }
+            }, {
+                rootMargin: '0px 0px 600px 0px',
+                threshold: 0
+            });
+
+            observer.observe(loaderEl[0]);
+        } else {
+            // Fallback: throttled scroll listener for older browsers.
+            var scrollTimer = null;
+            $(window).on('scroll.infiniteScroll', function () {
+                if (scrollTimer) return;
+                scrollTimer = setTimeout(function () {
+                    scrollTimer = null;
+                    if (!loaderEl.length) return;
+                    var loaderTop = loaderEl.offset().top;
+                    var scrollBottom = $(window).scrollTop() + $(window).height();
+                    if (scrollBottom >= loaderTop - 600) {
+                        loadNextPage();
+                    }
+                }, 100);
             });
         }
     }

@@ -238,6 +238,25 @@ function mohawkversionii_scripts() {
 	wp_enqueue_script( 'mohawkversionii-main', get_template_directory_uri() . '/js/scripts.js', array(), MOHAWK_VERSION, true );
 	wp_enqueue_script( 'mohawkversionii-custom', get_template_directory_uri() . '/js/custom-scripts.js', array(), MOHAWK_VERSION, true );
 
+	// Pass infinite scroll config to JS.
+	if ( is_shop() || is_product_category() || is_product_tag() || is_product_taxonomy() ) {
+		global $wp_query;
+		$current_term = '';
+		if ( is_tax() || is_product_category() ) {
+			$queried = get_queried_object();
+			$current_term = ! empty( $queried->slug ) ? $queried->slug : '';
+		}
+		wp_localize_script( 'mohawkversionii-custom', 'mohawkInfinite', array(
+			'ajaxurl'      => admin_url( 'admin-ajax.php' ),
+			'nonce'        => wp_create_nonce( 'mohawk_infinite_nonce' ),
+			'max_pages'    => intval( $wp_query->max_num_pages ),
+			'current_page' => max( 1, get_query_var( 'paged' ) ),
+			'category'     => $current_term,
+			'orderby'      => isset( $_GET['orderby'] ) ? sanitize_text_field( $_GET['orderby'] ) : 'menu_order',
+			'per_page'     => 24,
+		) );
+	}
+
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
 	}
@@ -414,3 +433,86 @@ function monsta_get_catalog_ordering_args( $args ) {
     return $args;
 }
 add_filter( 'woocommerce_get_catalog_ordering_args', 'monsta_get_catalog_ordering_args' );
+
+/**
+ * AJAX handler for infinite scroll product loading.
+ * Returns only the product card HTML fragments + total pages metadata.
+ */
+function mohawk_infinite_scroll_handler() {
+	check_ajax_referer( 'mohawk_infinite_nonce', 'nonce' );
+
+	$paged    = isset( $_GET['paged'] ) ? absint( $_GET['paged'] ) : 1;
+	$per_page = isset( $_GET['per_page'] ) ? absint( $_GET['per_page'] ) : 24;
+	$orderby  = isset( $_GET['orderby'] ) ? sanitize_text_field( $_GET['orderby'] ) : 'menu_order';
+	$category = isset( $_GET['category'] ) ? sanitize_text_field( $_GET['category'] ) : '';
+
+	$args = array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => $per_page,
+		'paged'          => $paged,
+	);
+
+	// Apply ordering matching monsta_get_catalog_ordering_args logic.
+	switch ( $orderby ) {
+		case 'popularity':
+			$args['orderby']  = 'meta_value_num';
+			$args['meta_key'] = 'total_sales';
+			$args['order']    = 'DESC';
+			break;
+		case 'date':
+			$args['meta_key'] = '_trophymonsta_info_new';
+			$args['orderby']  = 'meta_value';
+			$args['order']    = 'DESC';
+			break;
+		case 'price-low-to-high':
+			$args['orderby']   = 'meta_value_num';
+			$args['meta_key']  = '_price';
+			$args['order']     = 'ASC';
+			$args['meta_type'] = 'DECIMAL';
+			break;
+		case 'price-high-to-low':
+			$args['orderby']   = 'meta_value_num';
+			$args['meta_key']  = '_price';
+			$args['order']     = 'DESC';
+			$args['meta_type'] = 'DECIMAL';
+			break;
+		case 'menu_order':
+		default:
+			$args['meta_key'] = '_trophymonsta_info_new';
+			$args['orderby']  = 'meta_value';
+			$args['order']    = 'DESC';
+			break;
+	}
+
+	// Filter by category if provided.
+	if ( ! empty( $category ) ) {
+		$args['tax_query'] = array(
+			array(
+				'taxonomy' => 'product_cat',
+				'field'    => 'slug',
+				'terms'    => $category,
+			),
+		);
+	}
+
+	$query = new WP_Query( $args );
+
+	ob_start();
+	if ( $query->have_posts() ) {
+		while ( $query->have_posts() ) {
+			$query->the_post();
+			wc_get_template_part( 'content', 'product-card' );
+		}
+		wp_reset_postdata();
+	}
+	$html = ob_get_clean();
+
+	wp_send_json_success( array(
+		'html'      => $html,
+		'max_pages' => intval( $query->max_num_pages ),
+		'page'      => $paged,
+	) );
+}
+add_action( 'wp_ajax_mohawk_infinite_scroll', 'mohawk_infinite_scroll_handler' );
+add_action( 'wp_ajax_nopriv_mohawk_infinite_scroll', 'mohawk_infinite_scroll_handler' );

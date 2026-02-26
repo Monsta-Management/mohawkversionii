@@ -9,71 +9,9 @@ $enable_fix_sidebar_menu = get_field( 'enable_fix_sidebar_menu', 'option' );
 $totalproducts = wc_get_loop_prop( 'total' ) ? wc_get_loop_prop( 'total' ) : $wp_query->post_count;
 $limit = 24;
 
-if (!empty($_GET['infinite_result'])) {
-    $paged = get_query_var('paged') ? get_query_var('paged') : 1;
-
-    if (isset($_GET['orderby']) && $_GET['orderby'] === 'price-high-to-low') {
-        $current_term = '';
-        if (is_tax() || is_product_category()) {
-            $current_term = get_queried_object()->slug;
-        }
-
-        $args = array(
-            'posts_per_page' => 24,
-            'orderby'        => 'meta_value_num',
-            'order'          => 'DESC',
-            'meta_key'       => '_price',
-            'meta_query'     => array(
-                array(
-                    'key'     => '_price',
-                    'value'   => 0,
-                    'compare' => '>',
-                    'type'    => 'NUMERIC',
-                ),
-            ),
-            'tax_query'      => array(
-                array(
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'slug',
-                    'terms'    => $current_term,
-                ),
-            ),
-            'fields'         => 'ids',
-            'paged'          => $paged,
-        );
-
-        $wp_query = new WP_Query($args);
-    }
-
-    ob_start();
-    if (have_posts()) {
-        while (have_posts()) :
-            the_post();
-            wc_get_template_part('content', 'product-card');
-        endwhile;
-    } else {
-        echo '<h3 class="text-center">No result found.</h3>';
-    }
-
-    // Output pagination for AJAX
-    echo '<div class="custom-pagination ' . (!empty($enable_infinite_result) ? 'd-none hide' : '') . '">';
-    $big = 999999999;
-    echo paginate_links(array(
-        'base'      => str_replace($big, '%#%', esc_url(add_query_arg('paged', '%#%', get_pagenum_link($big)))),
-        'format'    => '?paged=%#%',
-        'current'   => max(1, $paged),
-        'total'     => $wp_query->max_num_pages,
-        'prev_text' => __('<i class="fas fa-chevron-left"></i>'),
-		'next_text' => __('<i class="fas fa-chevron-right"></i>'),
-    ));
-    echo '</div>';
-
-    $result = ob_get_contents();
-    ob_end_clean();
-    ob_flush();
-    echo $result;
-    exit();
-}
+// Legacy infinite_result handler removed — infinite scroll now uses
+// the mohawk_infinite_scroll AJAX endpoint in functions.php for faster,
+// lighter responses that don't load the full template stack.
 
 if ( isset($_GET['orderby']) && $_GET['orderby'] === 'price-high-to-low' ) {
     $current_term = '';
