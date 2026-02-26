@@ -1,0 +1,310 @@
+input[type="text"],
+input[type="email"],
+input[type="url"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="tel"],
+input[type="range"],
+input[type="date"],
+input[type="month"],
+input[type="week"],
+input[type="time"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="color"],
+textarea {
+	color: $color__text-input;
+	border: 1px solid $color__border-input;
+	border-radius: 3px;
+	padding: 3px;
+
+	&:focus {
+		color: $color__text-input-focus;
+	}
+}
+
+select {
+	border: 1px solid $color__border-input;
+}
+
+textarea {
+	width: 100%;
+}
+
+@mixin placeholder {
+    //font-family: 'ff-cocon-pro', sans-serif !important;
+    color: #666666;
+    font-size: 17px;
+    font-weight: 700;
+    opacity: 0.6;
+    @media screen and (max-width: 1920px) {
+        font-size: 17px;
+    }
+    @media screen and (max-width: 1600px) {
+        font-size: 16px;
+    }
+    @media screen and (max-width: 1536px) {
+        font-size: 15px;
+    }
+    @media screen and (max-width: 1440px) {
+        font-size: 14px;
+    }
+    @media screen and (max-width: 1366px) {
+        font-size: 13px;
+    }
+    @media screen and (max-width: 1280px) {
+        font-size: 12px;
+    }
+    @media screen and (max-width: 1024px) {
+        font-size: 12px;
+    }
+}
+
+.wpcf7-response-output {
+    border-radius: 20px;
+}
+
+.wpcf7 {
+    label {
+        width: 100%;
+    }
+    p {
+        margin: 0;
+        overflow: visible;
+    }
+    textarea {
+        width: 100%;
+    }
+    .wpcf7-form-control-wrap {
+        display: block;
+        position: relative;
+        .wpcf7-not-valid-tip {
+            position: absolute;
+            top: -7px;
+            left: 0;
+            background-color: red;
+            color: #ffffff;
+            border-radius: 20px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            padding: 0 5px;
+            line-height: 18px;
+            height: 18px;
+            pointer-events: none;
+            min-width: 145px;
+        }
+        &:after {
+            content: "";
+            display: block;
+            clear: both;
+        }
+        &.number-characters {
+            display: none !important;
+        }
+        .wpcf7-form-control {
+            width: 100%;
+            &.wpcf7-acceptance {
+                .wpcf7-list-item {
+                    width: 100%;
+                }
+            }
+            &.wpcf7-radio,
+            &.wpcf7-checkbox {
+                width: 100%;
+                display: flex;
+                flex-wrap: nowrap;
+                @media screen and (max-width: 990px) {
+                    flex-wrap: wrap;
+                }
+                .wpcf7-list-item {
+                    position: relative;
+                    height: 42px;
+                    flex-basis: 33.3333333333%;
+                    padding: 0 15px;
+                    margin: 0;
+                    @media screen and (max-width: 990px) {
+                        flex-basis: 100%;
+                        clear: both;
+                        margin-bottom: 5px;
+                    }
+                    input[type="radio"],
+                    input[type="checkbox"] {
+                        position: absolute;
+                        left: 5%;
+                        top: 50%;
+                        width: 10%;
+                        @include transform(translateY(-50%));
+                        @media screen and (max-width: 990px) {
+                            left: 0;
+                        }
+                    }
+                    .wpcf7-list-item-label {
+                        position: absolute;
+                        top: 0;
+                        right: 0;
+                        display: block;
+                        font-size: 22px;
+                        background: #ffffff;
+                        color: #444444;
+                        padding: 10px 30px;
+                        border-radius: 15px;
+                        float: left;
+                        line-height: 1;
+                        width: 84%;
+                        @media screen and (max-width: 2000px) {
+                            font-size: 18px;
+                        }
+                        @media screen and (max-width: 1400px) {
+                            font-size: 17px;
+                            line-height: 1.9;
+                        }
+                        @media screen and (max-width: 1300px) {
+                            font-size: 16px;
+                            line-height: 1.8;
+                        }
+                        @media screen and (max-width: 1200px) {
+                            font-size: 15px;
+                            line-height: 1.8;
+                        }
+                        @media screen and (max-width: 990px) {
+                            width: 90%;
+                            font-size: 14px;
+                            line-height: 1.7;
+                        }
+                        @media screen and (max-width: 768px) {
+                            font-size: 12px;
+                            line-height: 1.6;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    input[type="text"], input[type="email"], input[type="password"], input[type="search"], textarea, select, .wpcf7 input[type="text"], .wpcf7 input[type="email"], .wpcf7 textarea, .wpcf7 select, .ginput_container input[type="text"], .ginput_container input[type="email"], .ginput_container textarea, .ginput_container select, .mymail-form input[type="text"], .mymail-form input[type="email"], .mymail-form textarea, .mymail-form select, input[type="date"], input[type="tel"], input[type="number"] {
+        height: auto !important;
+        padding: 10px 15px;
+        border: none;
+        border-bottom: solid 3px #ffffff;
+        border-radius: 0;
+        font-weight: normal !important;
+        font-size: 17px !important;
+        background: rgba(255, 255, 255, 0.95);
+        color: #000000;
+        margin-bottom: 20px;
+        @media screen and (max-width: 1920px) {
+            padding: 9px 14px;
+        }
+        @media screen and (max-width: 1600px) {
+            padding: 8px 13px;
+        }
+        @media screen and (max-width: 1536px) {
+            padding: 7px 12px;
+        }
+        @media screen and (max-width: 1440px) {
+            padding: 6px 11px;
+        }
+        @media screen and (max-width: 1366px) {
+            padding: 5px 10px;
+        }
+        @media screen and (max-width: 1280px) {
+            padding: 4px 9px;
+        }
+        @media screen and (max-width: 1024px) {
+            padding: 3px 8px;
+        }
+        @media screen and (max-width: 768px) {
+            padding: 2px 7px;
+        }
+    }
+    .wpcf7-acceptance {
+        .wpcf7-list-item {
+            margin-left: 0;
+            label {
+                font-weight: normal;
+                text-transform: none;
+                margin-bottom: 30px;
+                letter-spacing: normal;
+                color: #666666;
+                opacity: 0.6;
+            }
+            input {
+                margin-right: 5px;
+            }
+        }
+    }
+    form input[type="submit"].wpcf7-form-control.wpcf7-submit {
+        @include button_global;
+        display: block;
+        margin: 30px auto 0 auto;
+        float: none;
+        border: none;
+        @media screen and (max-width: 768px) {
+            margin-top: 5px !important;
+        }
+    }
+    ::-webkit-input-placeholder {
+        @include placeholder;
+    }
+    ::-moz-placeholder {
+        @include placeholder;
+    }
+    :-ms-input-placeholder {
+        @include placeholder;
+    }
+    :-moz-placeholder {
+        @include placeholder;
+    }
+    .project_calculator {
+        label {
+            font-family: 'nunito-sans', sans-serif;
+            font-weight: 700;
+            display: block;
+            background: #ffffff;
+            color: #444444;
+            padding: 10px 30px;
+            border-radius: 15px;
+            line-height: 1;
+            opacity: 1 !important;
+            margin-bottom: 0 !important;
+        }
+        .preview {
+            border-radius: 50%;
+            color: #444444;
+            background-color: #ffffff;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            line-height: 40px;
+            margin-right: 10px;
+            float: left;
+            @media screen and (max-width: 2000px) {
+                font-size: 18px;
+            }
+            @media screen and (max-width: 1600px) {
+                font-size: 16px;
+                width: 30px;
+                height: 30px;
+                line-height: 30px;
+            }
+            @media screen and (max-width: 1400px) {
+                font-size: 15px;
+            }
+            @media screen and (max-width: 1300px) {
+                font-size: 14px;
+            }
+            @media screen and (max-width: 1200px) {
+                font-size: 13px;
+            }
+            @media screen and (max-width: 990px) {
+                font-size: 12px;
+            }
+        }
+        input[type="range"] {
+            float: left;
+            display: block !important;
+            width: calc(100% - 50px) !important;
+            margin-bottom: 0 !important;
+        }
+    }
+}

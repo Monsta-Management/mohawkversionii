@@ -1,0 +1,183 @@
+.monsta_modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 999999;
+  
+    &:before {
+        content: "";
+        background: black;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: inline-block;
+        opacity: 0.9;
+    }
+  
+    .centre_modal-inner {
+        width: 80%;
+        max-width: 1024px;
+        // height: 80%;
+        height: 650px;
+        background: white;
+        position: absolute;
+        z-index: 9999999;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+  
+        .centre_modal-title {
+            display: block;
+            border-bottom: 1px solid #ebebeb;
+            background-color: #f9f9f9;
+            color: #323436;
+            padding: 20px 20px 20px;
+            font-size: 24px;
+            span {
+                font-size: 18px;
+                float: right;
+                margin-right: 16px;
+                margin-top: 5px;
+            }
+            .close_modal {
+                float: right;
+                font-size: 35px;
+                bottom: 8px;
+                position: relative;
+                @include primary-color();
+                &:hover {
+                    cursor: pointer;
+                }
+            }
+        }
+  
+        .centre_modal-body {
+            padding: 24px;
+            text-align: center;
+            height: 500px;
+            overflow: auto;
+            width: 100%;
+            .centre-badge {
+                width: 16.6666%;
+                padding: 6px;
+                background-size: cover;
+                float: left;
+                overflow: hidden;
+                height: 230px;
+                line-height: 1;
+                .img-wrap {
+                    display: block;
+                    margin-bottom: 20px;
+                    margin: 0 auto;
+                    img {
+                        object-fit: contain;
+                        margin: 0;
+                        height: auto;
+                        height: 150px;
+                        border-radius: 50%;
+                        border: 2px solid transparent;
+                        -webkit-transition: 0.5s;
+                        -moz-transition: 0.5s;
+                        -o-transition: 0.5s;
+                        transition: 0.5s;
+                    }
+                }
+  
+                label {
+                    margin-top: 0;
+                    font-size: 14px;
+                    line-height: 1;
+                    text-transform: uppercase;
+                }
+  
+                &.selected {
+                    .img-wrap {
+                        img {
+                            border-color: #000;
+                        }
+                    }
+                }
+  
+                &:hover {
+                    cursor: pointer;
+  
+                    .img-wrap {
+                        img {
+                            border-color: #000;
+                        }
+                    }
+                }
+            }
+        }
+  
+        .centre_footer {
+            padding: 10px 20px;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 10px;
+  
+            button.centre_footer-btn {
+                padding: 16px 20px !important;
+                border: 0;
+                -webkit-box-shadow: none;
+                box-shadow: none;
+                @include primary-bg();
+                color: #fff;
+                text-shadow: none;
+                letter-spacing: 1px;
+                text-align: center;
+                margin-top: 7px;
+                display: block;
+                width: 100%;
+                text-transform: uppercase;
+                border-radius: 3px;
+                font-weight: 700;
+                font-family: "Roboto", sans-serif;
+                font-size: 16px;
+                line-height: 22px; 
+            }
+        }
+    }
+  
+    
+      @media (max-width: 767px) {
+          .centre_modal-inner .centre_modal-title {
+              display: inline-block !important;
+              width: 100%;
+              span{
+                  float: left !important;
+                  width: 100%;
+              }
+          }
+          .centre_modal-body{
+              .centre-badge {
+                  width: 33.3333% !important;
+                  .img-wrap{
+                      img{
+                          width: 75px !important;
+                          height: 75px !important;
+                          margin-bottom: 10px !important;
+                      }
+                  }
+              }
+          }
+  
+      }
+  
+  }
+  
+  .centre-hidden{
+    display:none; 
+  }
+  
+  .monsta-attribute{
+    margin-top:8px;
+    margin-bottom:8px;
+    overflow:hidden;
+    button{
+      width:100%;
+    }
+  }

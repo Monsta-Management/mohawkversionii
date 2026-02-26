@@ -1,0 +1,139 @@
+.single-product {
+
+	div.product {
+		position: relative;
+
+		.woocommerce-product-gallery {
+			position: relative;
+			float: left;
+
+			.woocommerce-product-gallery__trigger {
+				position: absolute;
+				top: 2em;
+				right: 1em;
+				display: block;
+				z-index: 99;
+			}
+
+			.flex-viewport {
+				margin-bottom: 1em;
+			}
+
+			.flex-control-thumbs {
+				margin: 0;
+				padding: 0;
+
+				li {
+					list-style: none;
+					cursor: pointer;
+					float: left;
+
+					img {
+						opacity: 0.5;
+
+						&.flex-active {
+							opacity: 1;
+						}
+					}
+
+					&:hover {
+
+						img {
+							opacity: 1;
+						}
+					}
+				}
+			}
+
+			@for $i from 2 through 5 {
+
+				&.woocommerce-product-gallery--columns-#{$i} {
+
+					.flex-control-thumbs {
+
+						li {
+
+							@include column-width($i);
+
+							&:nth-child(#{$i}n) {
+								margin-right: 0;
+							}
+
+							&:nth-child(#{$i}n+1) {
+								clear: both;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	.col-breadcrumbs {
+		display: inline-block;
+		margin-bottom: 2em;
+		width: 100%;
+	}
+
+	.col-breadcrumbs {
+		display: inline-block;
+		margin-bottom: 2em;
+		width: 100%;
+	}
+
+	.product-variant-items {
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		column-gap: 5px;
+
+		.u-size-item-product,
+		.u-option-item-product {
+			border-radius: 50%;
+			font-size: 15px;
+			width: 35px;
+			height: 35px;
+			line-height: 1;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.u-size-item-product {
+			background-color: var(--primary-color);
+			border: 0 !important;
+			color: #fff !important;
+			margin-left: 0;
+			margin-right: 0;
+		}
+
+		.u-option-item-product {
+
+			&.active {
+				border-color: var(--primary-color) !important;
+			}
+		}
+	}
+
+	footer.site-footer {
+
+		&.adapt-bg {
+			background-color: var(--primary-color) !important;
+		}
+	}
+}
+
+.stock {
+
+	&:empty::before {
+		display: none;
+	}
+
+	&.in-stock {
+		color: $woocommerce__color-success;
+	}
+
+	&.out-of-stock {
+		color: $woocommerce__color-error;
+	}
+}

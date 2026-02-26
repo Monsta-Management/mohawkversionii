@@ -1,0 +1,160 @@
+@mixin button_global {
+    position: relative;
+    cursor: pointer;
+    letter-spacing: 3px;
+    background-color: #000000;
+    color: #ffffff !important;
+    padding: 15px 44px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 22px;
+    margin-top: 30px;
+    margin-bottom: 0;
+    opacity: 0.9;
+    line-height: 2;
+    text-shadow: none !important;
+    @include transition(.5s);
+    @media screen and (max-width: 1920px) {
+        font-size: 19px;
+        padding: 13px 38px;
+    }
+    @media screen and (max-width: 1600px) {
+        font-size: 16px;
+        padding: 12px 37px;
+    }
+    @media screen and (max-width: 1536px) {
+        font-size: 15px;
+        padding: 11px 36px;
+    }
+    @media screen and (max-width: 1440px) {
+        font-size: 14px;
+        padding: 10px 35px;
+    }
+    @media screen and (max-width: 1366px) {
+        font-size: 13px;
+        padding: 9px 34px;
+    }
+    @media screen and (max-width: 1280px) {
+        font-size: 13px;
+        padding: 8px 33px;
+    }
+    @media screen and (max-width: 1024px) {
+        font-size: 13px;
+        padding: 7px 32px;
+    }
+    @media screen and (max-width: 990px) {
+        font-size: 16px;
+        padding: 6px 31px;
+    }
+    @media screen and (max-width: 768px) {
+        font-size: 14px;
+        padding: 5px 30px;
+    }
+    @media screen and (max-width: 480px) {
+        padding: 4px 0;
+        width: 100%;
+        text-align: center;
+    }
+    &:hover {
+        opacity: 1 !important;
+        color: #ffffff !important;
+        @include transform(scale(1.05));
+    }
+}
+
+.wp-block-buttons {
+    .wp-block-button {
+        a {
+            @include button_global;
+        }
+        &.is-style-outline {
+            a {
+                background: none !important;
+                border: solid 3px #000000 !important;
+                color: #000000 !important;
+                text-shadow: none !important;
+            }
+        }
+    }
+}
+
+button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+	border: 1px solid;
+	border-color: $color__border-button;
+	border-radius: 3px;
+	background: $color__background-button;
+	color: rgba(0, 0, 0, 0.8);
+	line-height: 1;
+	padding: 0.6em 1em 0.4em;
+
+	&:hover {
+		border-color: $color__border-button-hover;
+	}
+
+	&:active,
+	&:focus {
+		border-color: $color__border-button-focus;
+	}
+}
+
+.btn {
+	border: 0;
+
+	&.wp-block-button {
+		background: transparent !important;
+		margin: 0 !important;
+		padding: 0 !important;
+	}
+}
+
+.btn-lg {
+
+	&:not(.wp-block-button),
+	& > .wp-element-button {
+		align-items: center !important;
+		border-radius: 45px !important;
+		display: flex;
+		font-size: 1.25rem !important;
+		font-weight: 500 !important;
+		height: 45px !important;
+		justify-content: center;
+		line-height: 1.25 !important;
+		padding: 10px 25px !important;
+
+		@media only screen and (max-width: 1600px) {
+			font-size: 1.25rem !important;
+		}
+
+		@media only screen and (max-width: 1366px) {
+			font-size: 1.125rem !important;
+		}
+	}
+}
+
+.btn-primary {
+
+	&:not(.wp-block-button),
+	& > .wp-element-button {
+		background-color: var(--primary-color) !important;
+	}
+}
+
+.btn-secondary {
+	
+	&:not(.wp-block-button),
+	& > .wp-element-button {
+		background-color: var(--secondary-color) !important;
+
+		&:hover {
+			background-color: var(--primary-color) !important;
+		}
+
+		&:focus,
+		&:visited {
+			color: #fff !important;
+		}
+	}
+}

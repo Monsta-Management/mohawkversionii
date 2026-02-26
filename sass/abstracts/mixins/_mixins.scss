@@ -1,0 +1,71 @@
+// Center block
+@mixin center-block {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+// Column width with margin
+@mixin column-width($numberColumns: 3) {
+	width: map-get($columns, $numberColumns) - ( ( $columns__margin * ( $numberColumns - 1 ) ) / $numberColumns );
+}
+
+@mixin primary-color() {
+    //@extend .primary-color;
+    color: var(--primary-color);
+}
+
+@mixin secondary-color() {
+    color: var(--secondary-color);
+    //@extend .secondary-color;
+}
+
+@mixin primary-bg() {
+    background-color: var(--primary-color);
+    //@extend .primary-bg;
+}
+
+@mixin secondary-bg() {
+    background-color: var(--secondary-color);
+    //@extend .secondary-bg;
+}
+
+@mixin transition($params...) {
+    -webkit-transition: $params;
+    -moz-transition: $params;
+    -o-transition: $params;
+    transition: $params;
+}
+
+@mixin transform($params) {
+    -webkit-transform: $params;
+    -moz-transform: $params;
+    -ms-transform: $params;
+    -o-transform: $params;
+    transform: $params;
+}
+
+@mixin transform-origin($params) {
+    -webkit-transform-origin: $params;
+    -moz-transform-origin: $params;
+    -ms-transform-origin: $params;
+    -o-transform-origin: $params;
+    transform-origin: $params;
+}
+
+@mixin vertical-align($position: relative) {
+    position: $position;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
