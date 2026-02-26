@@ -373,72 +373,8 @@
         });
     
         observer.observe( targetNode, config );
-    }function convertTableToMobile() {
-        setTimeout(function () {
-            if ($(window).width() <= 768) {
-                $('.monstaprice').hide();
-    
-                $('#mobilePriceTable').remove(); // Remove old table before creating a new one.
-    
-                var mobileTable = '<div id="mobilePriceTable"><table class="mobile-price-table">';
-                mobileTable += '<tbody>';
-    
-                var quantities = [];
-                var prices = [];
-    
-                $('.monstaprice tr').each(function (rowIndex) {
-                    var rowData = $(this).find('td, th');
-    
-                    // First row (headers) - ignore.
-                    if (rowIndex === 0) return;
-    
-                    // Capture quantity row (2nd row).
-                    if (rowIndex === 1) {
-                        rowData.each(function (colIndex) {
-                            quantities[colIndex] = $(this).text().trim();
-                        });
-                    }
-    
-                    // Find the active variant row (tr with class "tr-show").
-                    if ($(this).hasClass('tr-show')) {
-                        rowData.each(function (colIndex) {
-                            prices[colIndex] = $(this).text().trim();
-                        });
-                    }
-                });
-    
-                // Generate the table using active variant's price.
-                if (quantities.length > 0 && prices.length > 0) {
-                    quantities.forEach(function (qty, index) {
-                        var price = prices[index] || ''; // Ensure there's a matching price.
-                        mobileTable += `<tr><td>${qty}</td><td>${price}</td></tr>`;
-                    });
-                }
-    
-                mobileTable += '</tbody></table></div>';
-    
-                $('.variations').before(mobileTable);
-            } else {
-                $('.monstaprice').show();
-                $('#mobilePriceTable').remove();
-            }
-        }, 200);
     }
 
-    function observeTableChanges() {
-        var targetNode = document.querySelector('.monstaprice');
-    
-        if (!targetNode) return; // Exit if table is not found
-    
-        var config = { childList: true, subtree: true, characterData: true };
-    
-        var observer = new MutationObserver(function () {
-            convertTableToMobile();
-        });
-    
-        observer.observe( targetNode, config );
-    }
-    
     $( document ).ready( function() {
         scrollClass();
         headerSubmenu();

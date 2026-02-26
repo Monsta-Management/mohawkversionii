@@ -193,34 +193,8 @@ function shortcode_featured_categories() {
     </div>
 
     <?php
-    global $post;
-    global $wp_query;
-    $monsta_parent_array = get_term_by( 'slug', 'trophy-specialists', 'product_cat' );
-    $monsta_parent = ! empty( $monsta_parent_array->term_id ) ? $monsta_parent_array->term_id : false;
-    
-    $args = [
-        'taxonomy'   => 'product_cat',
-        'hide_empty' => false,
-        'parent'     => $monsta_parent    
-    ];
-    
-    $product_cat = get_terms( $args );
-    $product_cat_id = ! empty( $wp_query->get_queried_object()->term_id ) ? $wp_query->get_queried_object()->term_id : 1;
-    
-    $ungrouped_array = get_term_by( 'slug', 'ungrouped', 'product_cat' );
-    $ungrouped = $ungrouped_array->term_id;
-    
-    $category = get_queried_object();
-
-    // Get the active category on carousel for product page.
-    if ( is_product() ) {
-        $product_terms = get_the_terms( $post->ID, 'product_cat' );
-        $current_product_cat_ids = array();
-        
-        foreach ( $product_terms as $product_term ) {
-            $current_product_cat_ids[] = $product_term->term_id;
-        }
-    }
+    // Dead/duplicate taxonomy queries removed — they were repeating the same
+    // get_term_by / get_terms calls from the top of this function with no effect.
 
     return ob_get_clean();
 }

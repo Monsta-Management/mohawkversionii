@@ -203,7 +203,7 @@ function mohawkversionii_scripts() {
     wp_enqueue_style( 'mohawkversionii-wc-layout', get_site_url() . '/wp-content/plugins/woocommerce/assets/css/woocommerce-layout.css', array(), MOHAWK_VERSION );
     wp_enqueue_style( 'mohawkversionii-wc-smallscreen', get_site_url() . '/wp-content/plugins/woocommerce/assets/css/woocommerce-smallscreen.css', array(), MOHAWK_VERSION );
     wp_enqueue_style( 'mohawkversionii-wc-general', get_site_url() . '/wp-content/plugins/woocommerce/assets/css/woocommerce.css', array(), MOHAWK_VERSION );
-    wp_enqueue_style( 'mohawkversionii-bootstrap', get_template_directory_uri() . '/inc/bootstrap/css/bootstrap.css', array(), MOHAWK_VERSION );
+    wp_enqueue_style( 'mohawkversionii-bootstrap', get_template_directory_uri() . '/inc/bootstrap/css/bootstrap.min.css', array(), MOHAWK_VERSION );
     wp_enqueue_style( 'mohawkversionii-monstamanagement', get_site_url() . '/wp-content/plugins/monstamanagement/_inc/trophymonsta.css', array(), MOHAWK_VERSION );
     wp_enqueue_style( 'mohawkversionii-woo-variation-gallery', get_site_url() . '/wp-content/plugins/monstamanagement/css/variation-image/frontend.css', array(), MOHAWK_VERSION );
     wp_enqueue_style( 'mohawkversionii-woo-variation-gallery-theme-support', get_site_url() . '/wp-content/plugins/monstamanagement/css/variation-image/theme-support.css', array(), MOHAWK_VERSION );
@@ -217,7 +217,8 @@ function mohawkversionii_scripts() {
 		wp_enqueue_style( 'mohawkversionii-photoswipe', get_template_directory_uri() . '/lib/photoswipe/css/photoswipe.css', array(), MOHAWK_VERSION );
 	}
     
-	wp_enqueue_style( 'mohawkversionii-style', get_stylesheet_uri(), array(), MOHAWK_VERSION );
+	// Load minified stylesheet for performance (style.min.css), with style.css as RTL fallback.
+	wp_enqueue_style( 'mohawkversionii-style', get_template_directory_uri() . '/style.min.css', array(), MOHAWK_VERSION );
 	wp_style_add_data( 'mohawkversionii-style', 'rtl', 'replace' );
 
     wp_enqueue_script( 'mohawkversionii-bootstrap', get_template_directory_uri() . '/inc/bootstrap/js/bootstrap.bundle.min.js', array(), MOHAWK_VERSION, true );

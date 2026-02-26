@@ -10,7 +10,6 @@ $mark_logo = get_field( 'site_product_mark_logo', 'option' );
 $thumb_url = false;
 $attachment_ids = $product->get_gallery_image_ids();
 $image_items = product_image_vartiant( $product );
-$size_items = product_colors_or_sizes( $product, 'size' );
 
 // Featured image.
 if ( has_post_thumbnail( $product->id ) ) {
@@ -36,6 +35,7 @@ if ( empty( $thumb_url ) ) {
 }
 
 $size_labels = ['S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', '5XL', '6XL', '7XL', '8XL'];
+// Performance fix: call product_colors_or_sizes() once per type instead of 3 times.
 $color_items = product_colors_or_sizes( $product, 'color' );
 $size_items = product_colors_or_sizes( $product, 'size' );
 $variation_type = ! empty( $color_items ) ? 'color' : 'size';
@@ -96,14 +96,14 @@ $trophymonsta_image = get_post_meta( $product->get_id(), '_trophymonsta_image', 
                 <?php echo $badge; ?>
                 <a href="<?=get_permalink();?>">
                     <?php if ( $trophymonsta_image ) { ?>
-                        <img src="<?php echo $trophymonsta_image ?>" alt="<?php echo get_the_title(); ?>" >
+                        <img src="<?php echo $trophymonsta_image ?>" alt="<?php echo get_the_title(); ?>" loading="lazy">
                     <?php } else { ?>
-                        <img src="<?=$thumb_url;?>" alt="<?=basename( $thumb_url );?>">
+                        <img src="<?=$thumb_url;?>" alt="<?=basename( $thumb_url );?>" loading="lazy">
                     <?php } ?>
-                    
+
                     <?php if ( $trophymonsta_video ) { ?>
                         <div class="hover-spin s3">
-                            <video autoplay loop muted>
+                            <video autoplay loop muted preload="none">
                                 <source src="<?php echo $trophymonsta_video; ?>" type="video/mp4">
                                 Your browser does not support the video tag.
                             </video>
