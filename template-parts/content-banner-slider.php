@@ -5,9 +5,9 @@ if( $monsta_slides && !empty( $monsta_slides ) ) :
     ?>
         <div id="site-slider" class="swiper">
             <div class="swiper-wrapper">
-                <?php foreach( $monsta_slides as $slide ) : ?>
+                <?php foreach( $monsta_slides as $index => $slide ) : ?>
                     <div class="swiper-slide">
-                        <img src="<?php echo esc_attr( $slide[ 'monsta_slide_image'] ); ?>" alt="<?php echo get_bloginfo( 'name' ); ?>" />
+                        <img src="<?php echo esc_attr( $slide[ 'monsta_slide_image'] ); ?>" alt="<?php echo get_bloginfo( 'name' ); ?>"<?php echo $index > 0 ? ' loading="lazy"' : ' fetchpriority="high"'; ?> />
                         <div class="banner-text">
                             <h1><?php echo esc_html( $slide['monsta_slide_title'] ); ?></h1>
                             <p><?php echo esc_html( $slide['monsta_slide_content'] ); ?></p>

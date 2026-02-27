@@ -1943,7 +1943,7 @@ body {
       position: absolute;
       width: 30px;
       z-index: 99; }
-  body .product-card:hover .hover-spin {
+  body .product-card:hover .hover-spin.video-ready {
     opacity: 1;
     z-index: 98; }
   body .grecaptcha-badge {
@@ -8006,5 +8006,9 @@ body.woocommerce-cart .is-small.wc-block-cart {
   .modal:not(.right) .modal-dialog .modal-content {
     margin: auto !important;
     height: fit-content !important; }
+
+/* Kill slick ajax-loader.gif request (missing from plugin path, causes 404). */
+.slick-loading .slick-list {
+  background-image: none !important; }
 
 /*# sourceMappingURL=style.css.map */

@@ -1761,5 +1761,22 @@
         sortMedalProductSingleSelectOptions();
         disableBillingShippingAutoComplete();
         woocommerceLegacyStyleOverrides();
+        productVideoHoverReady();
     });
+
+    /**
+     * Prevent blank product images when hovering before video loads.
+     * Adds a 'video-ready' class to .hover-spin only after the video
+     * has enough data to display a frame. CSS uses this class to gate
+     * the opacity transition so the image stays visible until then.
+     */
+    function productVideoHoverReady() {
+        $('.hover-spin.s3 video').each(function () {
+            var video = this;
+            var $parent = $(this).closest('.hover-spin');
+            video.addEventListener('loadeddata', function () {
+                $parent.addClass('video-ready');
+            });
+        });
+    }
 } )( window.jQuery || window.$ );

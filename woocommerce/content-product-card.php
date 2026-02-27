@@ -1,10 +1,19 @@
 <?php
 
-global $product; 
+global $product;
 
 if ( ! $product ) return false;
 
-$mark_logo = get_field( 'site_product_mark_logo', 'option' );
+// Cache ACF option lookups — these return the same value for every product card
+// but were previously queried 24 times per page (once per card).
+static $mark_logo = null;
+static $bulk_pricing_from = null;
+if ( $mark_logo === null ) {
+    $mark_logo = get_field( 'site_product_mark_logo', 'option' );
+}
+if ( $bulk_pricing_from === null ) {
+    $bulk_pricing_from = get_field( 'bulk_pricing_from', 'option' );
+}
 
 // Get image.
 $thumb_url = false;
@@ -62,7 +71,6 @@ if ( $custompostmeta == 'trophymonsta' ) {
 
 // Bulk pricing 'from' price reference.
 $bulk_price = '';
-$bulk_pricing_from = get_field('bulk_pricing_from', 'option');
 
 $regular_price = $product->get_price();
 

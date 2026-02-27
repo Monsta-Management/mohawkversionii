@@ -229,7 +229,7 @@ body {
             }
         }
     
-        &:hover .hover-spin {
+        &:hover .hover-spin.video-ready {
             opacity: 1;
             z-index: 98;
         }

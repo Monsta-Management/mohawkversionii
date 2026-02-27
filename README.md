@@ -96,10 +96,71 @@ The new AJAX handler (`mohawk_infinite_scroll_handler` in `functions.php`) runs 
 
 ### Combined Server Load Reduction
 
-| Source | DB queries removed per event | Frequency |
-|---|---|---|
-| Duplicate `product_colors_or_sizes('size')` | ~40 queries x 24 products = **~960/page** | Every shop/category page view |
-| Dead shortcode taxonomy queries | **3-5 queries** | Every page with featured categories |
-| Full-page AJAX replaced by lightweight endpoint | **Hundreds** (full WP bootstrap + duplicate WP_Query + paginate_links) | Every infinite scroll page load |
-
 On a category page where a user scrolls through all products, the old code could easily generate **thousands** of redundant database queries in a single session. The changes cut the per-request DB overhead dramatically — the heaviest hitter being the variation lookup fix, which scales linearly with product count and directly reduces load on `wp_postmeta` (typically the largest and most contended table in any WooCommerce database).
+
+---
+
+## Round 2 — Further Performance Optimisations (`1b02316`)
+
+### 4. Per-Request Variation Caching (`inc/woocommerce.php`)
+
+- **Added `mohawk_get_cached_variations()`** — a new wrapper around `$product->get_available_variations()` using a `static` array cache. All three functions that hit the database for variations now go through this single cache layer:
+  - `product_image_vartiant()`
+  - `product_colors_or_sizes()`
+  - `product_image_variants_by_key()`
+- On a 24-product archive page this drops variation DB calls from **72 down to 24** — one per product instead of three.
+
+### 5. Minified All Theme JavaScript
+
+All three main JS files are now minified and served as `.min.js` in production:
+
+| File | Before | After | Saving |
+|---|---|---|---|
+| `custom-scripts.js` | 69KB | 23KB | **67%** |
+| `mohawk_accesories.js` | 21KB | 4.4KB | **79%** |
+| `scripts.js` | 12KB | 4.5KB | **63%** |
+| **Total** | **102KB** | **31.9KB** | **~70KB saved per page load** |
+
+### 6. Conditional Asset Loading (`functions.php`)
+
+- **Lightbox2** CSS and JS (~12KB) now only loads on product pages via `is_product()`. Every other page type sheds that weight entirely.
+
+### 7. jQuery Dependency Declaration (`functions.php`)
+
+- All three main scripts (`mohawk_accesories`, `scripts`, `custom-scripts`) now properly declare `array('jquery')` as a dependency. WordPress can now manage script load order correctly, preventing potential race conditions.
+
+### 8. Dead Code & Debug Cleanup
+
+- **Removed duplicate `convertTableToMobile()` + `observeTableChanges()`** — 73 lines of identical, duplicated code deleted from `js/scripts.js`.
+- **Stripped all 10 `console.log` statements** from production JS across `mohawk_accesories.js`, `custom-scripts.js`, `mohawk_import.js`, and `scripts.js`.
+- **Deleted 46 lines of commented-out `s3_url_validator` dead code** from `functions.php` (two abandoned versions of the same function).
+
+### 9. Security & Code Quality Fixes
+
+- **Replaced `eval(global_var)` with `window[global_var]`** in `mohawk_accesories.js` — eliminates arbitrary code execution risk.
+- **Replaced `@` error suppression with proper `isset()` check** in `inc/woocommerce.php` — prevents silent failures and improves debuggability.
+
+### 10. Banner Slider Lazy Loading (`template-parts/content-banner-slider.php`)
+
+- First banner slide gets `fetchpriority="high"` — tells the browser to prioritise it as the hero/LCP image.
+- All subsequent slides get `loading="lazy"` — only downloaded when the user swipes to them, saving bandwidth on initial page load.
+
+### 11. Category Sidebar N+1 Query Fix (`template-parts/category-sidebar.php`)
+
+- The old sidebar ran a separate `get_terms()` query **inside a loop** for each parent category to fetch its children. With 15 parent categories, that was 15+ individual DB queries just to render the sidebar.
+- Replaced with a **single `get_terms()` call** using `child_of` to fetch all descendants at once, then grouped by parent ID in PHP. Sidebar now renders from 1 query instead of N+1.
+
+### 12. ACF Options Caching (`woocommerce/content-product-card.php`)
+
+- `get_field('site_product_mark_logo', 'option')` and `get_field('bulk_pricing_from', 'option')` were being called on **every product card** — 24 times each per archive page (48 total) despite returning the same global value every time.
+- Both are now cached with `static` variables — fetched once on the first card, reused for the remaining 23.
+
+### 13. Slick Ajax Loader 404 Fix (`style.css` / `style.min.css`)
+
+- The monstamanagement plugin's slick CSS references `ajax-loader.gif` at a path where the file doesn't exist, causing a 404 on every product page.
+- Added a CSS override (`.slick-loading .slick-list { background-image: none !important; }`) to suppress the request entirely.
+
+### 14. Product Video Hover Blank Image Fix (`js/custom-scripts.js`, `style.css`, `sass/base/elements/_body.scss`)
+
+- **Bug:** Hovering over a product card would show a blank overlay before the video had loaded. The `.hover-spin` div transitioned to `opacity: 1` on hover, but the video had `preload="none"` so no frame was available yet — the product image disappeared behind an empty overlay.
+- **Fix:** Added a `productVideoHoverReady()` function that listens for the video `loadeddata` event and adds a `video-ready` class to `.hover-spin` only once the video has a frame to display. Updated the CSS hover rule to target `.hover-spin.video-ready` instead of `.hover-spin`, so the overlay stays hidden until the video is actually ready to show.
