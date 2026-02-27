@@ -20,8 +20,6 @@
                         type: 'POST',
                         data: data,
                         success: function (response) {
-                            console.log(response);
-    
                             taget.text('Submit');
                             notif.removeClass('hidden');
                             notif.css('display', 'block');

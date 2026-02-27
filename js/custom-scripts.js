@@ -583,7 +583,6 @@
                         // remove select name attribute
                         $(this).find('.value select').removeAttr('name');
                     }else {
-                        console.log('setProductSliderImage === ' + selectName);
                         // re-assign select name attribute
                         $(this).find('.value select').attr('name', selectName);
                     }
@@ -749,7 +748,6 @@
                         */
                         if(colorOpt.length) {
                             colorOpt.trigger('click');
-                            console.log("Colours == click trigger1")
                         }
                     }, 200);
                 }

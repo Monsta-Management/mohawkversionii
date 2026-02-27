@@ -32,7 +32,7 @@ The JS in `custom-scripts.js` was rewritten from ~50 lines to ~250 lines, replac
 - Removing dead JS and PHP eliminates unused parsing/execution overhead on every page load.
 
 **Faster product browsing (infinite scroll):**
-- The old approach fetched the *entire next page* (header, sidebar, footer, scripts, styles) via `$.ajax` and then extracted just the product HTML. The new AJAX endpoint returns only the JSON product card markup — dramatically smaller response payload per page load.
+- The old approach fetched the *entire next page* (header, sidebar, footer, scripts, styles) via `$.ajax` and then extracted just the product HTML. The new AJAX endpoint returns only the JSON product card markup = dramatically smaller response payload per page load.
 - Prefetching means the next batch of products is already in the browser by the time the user reaches the bottom, effectively eliminating perceived wait time for the second-page load onward.
 
 **Fewer dropped triggers:**
@@ -66,7 +66,7 @@ The fix reduces this from 3 calls to 2 (one for `color`, one for `size`). That e
 **The math at scale:**
 - 24 products per page = **24 wasted `get_available_variations()` calls eliminated per page load**
 - If the average product has 8 variations, that's roughly **24 x 40 = ~960 unnecessary database queries removed per page view**
-- On a busy shop page doing 1,000 views/day, that's nearly **1 million fewer DB queries per day** — just from removing one duplicated line
+- On a busy shop page doing 1,000 views/day, that's nearly **1 million fewer DB queries per day** , just from removing one duplicated line
 
 And this compounds further with infinite scroll. A user scrolling through 5 pages of products would have triggered `5 x 24 = 120` redundant variation lookups. Now: zero.
 

@@ -210,8 +210,10 @@ function mohawkversionii_scripts() {
     wp_enqueue_style( 'mohawkversionii-fontawesome', get_template_directory_uri() . '/inc/fontawesome/css/all.min.css', array(), MOHAWK_VERSION );
     wp_enqueue_style( 'mohawkversionii-slick', get_template_directory_uri() . '/lib/slick/slick.css', array(), MOHAWK_VERSION );
     wp_enqueue_style( 'mohawkversionii-swiper', get_template_directory_uri() . '/lib/swiper/swiper-bundle.min.css', array(), MOHAWK_VERSION );
-    wp_enqueue_style( 'mohawkversionii-lightbox2', get_template_directory_uri() . '/lib/lightbox2/lightbox.min.css', array(), MOHAWK_VERSION );
-    
+    if ( is_product() ) {
+		wp_enqueue_style( 'mohawkversionii-lightbox2', get_template_directory_uri() . '/lib/lightbox2/lightbox.min.css', array(), MOHAWK_VERSION );
+	}
+
     if ( is_product() ) {
 		//wp_enqueue_style( 'mohawkversionii-drift', get_template_directory_uri() . '/lib/drift/drift.min.css', array(), MOHAWK_VERSION );
 		wp_enqueue_style( 'mohawkversionii-photoswipe', get_template_directory_uri() . '/lib/photoswipe/css/photoswipe.css', array(), MOHAWK_VERSION );
@@ -225,7 +227,9 @@ function mohawkversionii_scripts() {
 	wp_enqueue_script( 'mohawkversionii-navigation', get_template_directory_uri() . '/js/navigation.js', array(), MOHAWK_VERSION, true );
 	wp_enqueue_script( 'mohawkversionii-slick', get_template_directory_uri() . '/lib/slick/slick.min.js', array(), MOHAWK_VERSION, true );
 	wp_enqueue_script( 'mohawkversionii-swiper', get_template_directory_uri() . '/lib/swiper/swiper-bundle.min.js', array(), MOHAWK_VERSION, true );
-	wp_enqueue_script( 'mohawkversionii-lightbox2', get_template_directory_uri() . '/lib/lightbox2/lightbox.min.js', array(), MOHAWK_VERSION, true );
+	if ( is_product() ) {
+		wp_enqueue_script( 'mohawkversionii-lightbox2', get_template_directory_uri() . '/lib/lightbox2/lightbox.min.js', array('jquery'), MOHAWK_VERSION, true );
+	}
 	wp_enqueue_script( 'mohawkversionii-tm-custom-hide-category', get_site_url() . '/wp-content/plugins/monstamanagement/js/tm-custom-hide-category.js', array(), MOHAWK_VERSION, true );
 	
 	if ( is_product() ) {
@@ -234,9 +238,9 @@ function mohawkversionii_scripts() {
 		wp_enqueue_script( 'mohawkversionii-photoswipe-lightbox', get_template_directory_uri() . '/lib/photoswipe/js/photoswipe-lightbox.umd.min.js', array(), MOHAWK_VERSION, true );
 	}
 	
-	wp_enqueue_script( 'mohawkversionii-accesories', get_template_directory_uri() . '/js/mohawk_accesories.js', array(), MOHAWK_VERSION, true );
-	wp_enqueue_script( 'mohawkversionii-main', get_template_directory_uri() . '/js/scripts.js', array(), MOHAWK_VERSION, true );
-	wp_enqueue_script( 'mohawkversionii-custom', get_template_directory_uri() . '/js/custom-scripts.js', array(), MOHAWK_VERSION, true );
+	wp_enqueue_script( 'mohawkversionii-accesories', get_template_directory_uri() . '/js/mohawk_accesories.min.js', array('jquery'), MOHAWK_VERSION, true );
+	wp_enqueue_script( 'mohawkversionii-main', get_template_directory_uri() . '/js/scripts.min.js', array('jquery'), MOHAWK_VERSION, true );
+	wp_enqueue_script( 'mohawkversionii-custom', get_template_directory_uri() . '/js/custom-scripts.min.js', array('jquery'), MOHAWK_VERSION, true );
 
 	// Pass infinite scroll config to JS.
 	if ( is_shop() || is_product_category() || is_product_tag() || is_product_taxonomy() ) {
@@ -316,56 +320,6 @@ if ( defined( 'JETPACK__VERSION' ) ) {
 if ( class_exists( 'WooCommerce' ) ) {
 	require get_template_directory() . '/inc/woocommerce.php';
 }
-
-/**
- * S3 url validator.
- */
-/*function s3_url_validator( $url ) {
-    $response = wp_remote_head( $url );
-    
-    // If it's a valid response (HTTP 200), return true.
-    if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200 ) {
-        return true;
-    }
-    
-    // If the first check failed, try the lowercase version.
-    $lowercase_url = strtolower( $url );
-    $response = wp_remote_head( $lowercase_url );
-    
-    // Return true if the lowercase URL is valid, false otherwise.
-    return ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200;
-}*/
-/*function s3_url_validator( $url ) {
-    // Generate a unique cache key for the URL.
-    $cache_key = 's3_url_validator_' . md5( $url );
-
-    // Attempt to get a cached result.
-    $cached_result = get_transient( $cache_key );
-
-    if ( $cached_result !== false ) {
-        return $cached_result;
-    }
-
-    // Perform the HTTP HEAD request.
-    $response = wp_remote_head( $url );
-
-    // Validate the response.
-    if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200 ) {
-        set_transient( $cache_key, true, HOUR_IN_SECONDS );
-        return true;
-    }
-
-    // Try the lowercase URL as a fallback.
-    $lowercase_url = strtolower( $url );
-    $response = wp_remote_head( $lowercase_url );
-
-    $is_valid = ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200;
-
-    // Cache the result for 1 hour.
-    set_transient( $cache_key, $is_valid, HOUR_IN_SECONDS );
-
-    return $is_valid;
-}*/
 
 /*
 *

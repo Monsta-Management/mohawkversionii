@@ -62,7 +62,6 @@
         if (unitprice.length){
              var displayPrice = $(unitprice).find('.unit_price').text().split('$');
              var unit_displayPrice = parseFloat($(unitprice).find('.unit_price').attr('orig-price'));
-                console.log(unit_displayPrice + " ===  unit_displayPrice")
                 displayPrice = ( displayPrice[0] != "" ) ? parseFloat(displayPrice[0]) : parseFloat(displayPrice[1]);
                 
              var quantity = parseFloat($(unitprice).find('.quantity .qty').val());
@@ -93,8 +92,6 @@
                         );
                     }
                     
-                    console.log(defaultPriceCC1 + " ===  defaultPriceCC1")
-                    console.log(additional + " ===  additional")
 
                     if (!isNaN(defaultPriceCC1)) {
                         unit_displayPrice = unit_displayPrice - defaultPriceCC1;
@@ -104,7 +101,6 @@
                         unit_displayPrice = unit_displayPrice + additional;
                     }
                     total_price = unit_displayPrice * quantity;
-                    console.log(total_price + " ===  total_price")
                 }
             });
     
@@ -266,7 +262,7 @@
                                     var comp_price = woocommerce_currency_symbol + $(e).attr('price-attr');
                                     var comp_label = $(e).text() + ' ('+comp_price+')';
 
-                                    var global = eval(global_var);
+                                    var global = window[global_var];
 
                                     var comp_image = global[$(e).val()]["components_image"],
                                         comp_code = global[$(e).val()]["components_code"];
@@ -360,7 +356,6 @@
                         setTimeout(function () {
                             if( ! $(element).is(":hidden") ) {
                                selectName = $(element).attr('data-select-name');
-                               console.log('onload2 === ' + selectName);
                                SelectedName();
                             }
                          }, 900);
@@ -376,7 +371,6 @@
                            if( ! $(element).is(":hidden") ) {
                               selectedName = $(element).attr('data-select-name');
                              $(element).find('.value select').attr('name', selectedName);
-                             console.log('onload3 === ' + selectedName);
                            }
                         }, 900)
                     }

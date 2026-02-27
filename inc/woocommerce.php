@@ -235,11 +235,29 @@ if ( ! function_exists( 'mohawkversionii_woocommerce_header_cart' ) ) {
 
 
 /**
+ * Get available variations for a product with per-request caching.
+ * Prevents multiple expensive get_available_variations() DB calls for the same
+ * product within a single page load (archive pages render 24+ product cards,
+ * each needing variations for images, colours, and sizes).
+ */
+function mohawk_get_cached_variations( $product ) {
+    static $cache = [];
+    $id = $product->get_id();
+
+    if ( ! isset( $cache[ $id ] ) ) {
+        $cache[ $id ] = method_exists( $product, 'get_available_variations' )
+            ? $product->get_available_variations()
+            : false;
+    }
+
+    return $cache[ $id ];
+}
+
+/**
  * Create image url attribute to size options.
  */
 function product_image_vartiant( $product ) {
-    // check if has variations
-    $variations = method_exists($product, 'get_available_variations') ? $product->get_available_variations() : false;
+    $variations = mohawk_get_cached_variations( $product );
 
     if ( ! empty( $variations ) ) {
 
@@ -255,8 +273,7 @@ function product_image_vartiant( $product ) {
  * Create options for colors or size.
  */
 function product_colors_or_sizes( $product, $type = 'size' ) {
-    // Check if has variations.
-    $variations = method_exists( $product, 'get_available_variations' ) ? $product->get_available_variations() : false;
+    $variations = mohawk_get_cached_variations( $product );
     $variation_type = 'size';
 
     // Check product if medal.
@@ -312,7 +329,7 @@ function product_colors_or_sizes( $product, $type = 'size' ) {
 
         foreach ( $the_variations as $variation ) {
 
-            $attrs = @$variation['attributes'];
+            $attrs = isset( $variation['attributes'] ) ? $variation['attributes'] : array();
             $size_attr = $attrs['attribute_pa_monstasize'];
 
             // Check the size first.
@@ -382,7 +399,7 @@ function product_colors_or_sizes( $product, $type = 'size' ) {
  * Get product image variants by key.
  */
 function product_image_variants_by_key( $product ) {
-    $variations = method_exists( $product, 'get_available_variations' ) ? $product->get_available_variations() : false;
+    $variations = mohawk_get_cached_variations( $product );
 
     if ( ! empty( $variations ) ) {
         $image_variation = [];
