@@ -9,7 +9,7 @@
 
 if ( ! defined( 'MOHAWK_VERSION' ) ) {
 	// Replace the version number of the theme on each release.
-	define( 'MOHAWK_VERSION', '1.2.6' );
+	define( 'MOHAWK_VERSION', '2.0.0' );
 }
 
 /**
@@ -266,6 +266,11 @@ function mohawkversionii_scripts() {
 	}
 }
 add_action( 'wp_enqueue_scripts', 'mohawkversionii_scripts' );
+
+/**
+ * Mohawk theme update checker.
+ */
+require get_template_directory() . '/inc/updater.php';
 
 /**
  * Mohawk import implementation.
