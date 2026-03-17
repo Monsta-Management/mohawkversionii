@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.0.4] - 2026-03-17
+### Improved
+- enhanced compatibility with child themes by correctly detecting the parent theme version.
+
+---
+
 ## [2.0.3] - 2026-03-17
 ### Fixed
 - fix category slug via ACF `Grr Options > Category Settings` instead of hard coding it.

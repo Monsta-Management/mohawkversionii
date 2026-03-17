@@ -87,7 +87,7 @@ if ( ! function_exists( 'mohawkversionii_acf_import_category_settings' ) ) {
         }
     
         // Theme version for import tracking.
-        $theme_version    = wp_get_theme()->get( 'Version' );
+        $theme_version    = wp_get_theme( 'mohawkversionii' )->get( 'Version' );
         $imported_version = get_option( 'mohawk_acf_imported_version', '' );
     
         // Field group key.
