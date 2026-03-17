@@ -3,10 +3,10 @@
     <?php
     // Performance fix: fetch ALL descendant terms in a single query instead of
     // running a separate get_terms() for each parent inside a loop (N+1 pattern).
-    $monsta_parent_array = get_term_by( 'slug', 'monsta-categories', 'product_cat' );
+    $monsta_parent_array = get_term_by( 'slug', get_field( 'category_slug', 'option' ) ?: 'trophy-specialists', 'product_cat' );
     $monsta_parent = ! empty( $monsta_parent_array->term_id ) ? $monsta_parent_array->term_id : 0;
 
-    // One query: fetch all terms whose top-level ancestor is monsta-categories.
+    // One query: fetch all terms whose top-level ancestor is monsta-categories or trophy-specialists.
     $all_terms = get_terms( [
         'taxonomy'   => 'product_cat',
         'hide_empty' => false,

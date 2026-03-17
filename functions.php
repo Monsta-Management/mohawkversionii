@@ -9,7 +9,7 @@
 
 if ( ! defined( 'MOHAWK_VERSION' ) ) {
 	// Replace the version number of the theme on each release.
-	define( 'MOHAWK_VERSION', '2.0.4' );
+	define( 'MOHAWK_VERSION', '2.0.5' );
 }
 
 /**
@@ -220,8 +220,15 @@ function mohawkversionii_scripts() {
 	}
     
 	// Load minified stylesheet for performance (style.min.css), with style.css as RTL fallback.
-	wp_enqueue_style( 'mohawkversionii-style', get_template_directory_uri() . '/style.min.css', array(), MOHAWK_VERSION );
-	wp_style_add_data( 'mohawkversionii-style', 'rtl', 'replace' );
+	if ( ! is_child_theme() ) {
+        wp_enqueue_style(
+            'mohawkversionii-style',
+            get_template_directory_uri() . '/style.min.css',
+            array(),
+            MOHAWK_VERSION
+        );
+        wp_style_add_data( 'mohawkversionii-style', 'rtl', 'replace' );
+    }
 
     wp_enqueue_script( 'mohawkversionii-bootstrap', get_template_directory_uri() . '/inc/bootstrap/js/bootstrap.bundle.min.js', array(), MOHAWK_VERSION, true );
 	wp_enqueue_script( 'mohawkversionii-navigation', get_template_directory_uri() . '/js/navigation.js', array(), MOHAWK_VERSION, true );
