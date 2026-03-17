@@ -75,6 +75,85 @@ function mohawkversionii_base_colors() {
 add_action( 'wp_footer', 'mohawkversionii_base_colors' );
 
 /**
+ * Mohawk V2 - Auto Import ACF JSON Field Group.
+ *
+ * Efficient and safe function to import ACF field groups once per theme version.
+ */
+if ( ! function_exists( 'mohawkversionii_acf_import_category_settings' ) ) {
+    function mohawkversionii_acf_import_category_settings() {
+        // Make sure ACF functions exist.
+        if ( ! function_exists( 'acf_add_local_field_group' ) || ! function_exists( 'acf_get_field_group' ) ) {
+            return;
+        }
+    
+        // Theme version for import tracking.
+        $theme_version    = wp_get_theme()->get( 'Version' );
+        $imported_version = get_option( 'mohawk_acf_imported_version', '' );
+    
+        // Field group key.
+        $field_group_key = 'group_64e308fd35fe8';
+    
+        // Strict check: exit if field group exists or already imported for this theme version.
+        if ( acf_get_field_group( $field_group_key ) || $imported_version === $theme_version ) {
+            return;
+        }
+    
+        // Define the Category Settings field group.
+        $category_settings_group = [
+            'key' => $field_group_key,
+            'title' => 'Category Settings',
+            'fields' => [
+                [
+                    'key' => 'field_64e30926491af',
+                    'label' => 'Category Slug',
+                    'name' => 'category_slug',
+                    'type' => 'text',
+                    'instructions' => '',
+                    'required' => 0,
+                    'conditional_logic' => 0,
+                    'wrapper' => [
+                        'width' => '',
+                        'class' => '',
+                        'id' => '',
+                    ],
+                    'default_value' => 'monsta-categories',
+                    'placeholder' => 'Enter the category slug here e.g: trophy-specialists or monsta-categories',
+                    'prepend' => '',
+                    'append' => '',
+                    'maxlength' => '',
+                ],
+            ],
+            'location' => [
+                [
+                    [
+                        'param' => 'options_page',
+                        'operator' => '==',
+                        'value' => 'grr-options',
+                    ],
+                ],
+            ],
+            'menu_order' => 0,
+            'position' => 'normal',
+            'style' => 'default',
+            'label_placement' => 'top',
+            'instruction_placement' => 'label',
+            'hide_on_screen' => '',
+            'active' => true,
+            'description' => '',
+            'show_in_rest' => false,
+            'display_title' => '',
+        ];
+    
+        // Import the field group.
+        acf_add_local_field_group( $category_settings_group );
+    
+        // Mark as imported for this theme version.
+        update_option( 'mohawk_acf_imported_version', $theme_version );
+    }
+}
+add_action( 'after_setup_theme', 'mohawkversionii_acf_import_category_settings', 5 );
+
+/**
  * Custom sort by name.
  */
 function sort_by_name( $a, $b ) {

@@ -111,7 +111,7 @@ function shortcode_featured_categories() {
     global $wp_query;
 
     $monsta_cats = [];
-    $monsta_parent_array = get_term_by( 'slug', 'trophy-specialists', 'product_cat' );
+    $monsta_parent_array = get_term_by( 'slug', get_field( 'category_slug', 'option' ) ?: 'trophy-specialists', 'product_cat' );
     $monsta_parent = ! empty( $monsta_parent_array->term_id ) ? $monsta_parent_array->term_id : false;
     
     $args = [

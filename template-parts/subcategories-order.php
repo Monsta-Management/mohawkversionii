@@ -5,7 +5,7 @@ global $wp_query;
 $remove_subcategories = get_field( 'remove_subcategories_in_menus', 'option' );
 $remove_subcategories = ! empty( $remove_subcategories ) ? reset( $remove_subcategories ) : false;
 
-$monsta_parent_array = get_term_by( 'slug', 'trophy-specialists', 'product_cat' );
+$monsta_parent_array = get_term_by( 'slug', get_field( 'category_slug', 'option' ) ?: 'trophy-specialists', 'product_cat' );
 $monsta_parent = ! empty( $monsta_parent_array->term_id ) ? $monsta_parent_array->term_id : false;
 
 $args = [
@@ -70,7 +70,18 @@ if ( is_product() ) {
     					<div class="container">
     						<div class="submenu-container">
     						    <div class="row">
-    						        <a href="<?php echo esc_url( $category_link ); ?>" title="<?php echo esc_html( $category_name ); ?>" class="btn-category">View All <?php echo esc_html( $category_name ); ?> Products</a>
+    						        <a href="<?php echo esc_url( $category_link ); ?>" title="<?php echo esc_html( $category_name ); ?>" class="btn-category">
+    						            <svg width="18" height="18" viewBox="0 0 12 12" enable-background="new 0 0 12 12" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="currentColor">
+    						                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+    						                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+    						                <g id="SVGRepo_iconCarrier">
+        						                <g> <circle cx="6" cy="6" fill="currentColor" r="1.5"></circle>
+        						                    <path d="M6,2C4,2,2,3,0,6c2,3,4,4,6,4s4-1,6-4C10,3,8,2,6,2z M6,8.5C4.621582,8.5,3.5,7.3789063,3.5,6 S4.621582,3.5,6,3.5S8.5,4.6210938,8.5,6S7.378418,8.5,6,8.5z" fill="currentColor"></path>
+        						                </g>
+    						                </g>
+    						            </svg>
+    						            Explore our <?php echo esc_html( $category_name ); ?> Collection
+    						        </a>
     						    </div>
     							<div class="row">
     								<?php

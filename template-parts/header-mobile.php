@@ -100,9 +100,9 @@ $cls = ( empty( $tb_text ) ) ?: 'has-top-bar';
                 $hierarchical = 1;
                 $title        = '';
                 $empty        = 0;
-                
-                // Get the "trophy-specialists" term object.
-                $trophy_specialists = get_term_by( 'slug', 'trophy-specialists', $taxonomy );
+
+                // Get the acf field value for the category slug, or default to 'trophy-specialists' if not set.
+                $trophy_specialists = get_term_by( 'slug', get_field( 'category_slug', 'option' ) ?: 'trophy-specialists', 'product_cat' );
                 
                 $parent_id = 0; // default to root level.
                 if ( $trophy_specialists && ! is_wp_error( $trophy_specialists ) ) {
