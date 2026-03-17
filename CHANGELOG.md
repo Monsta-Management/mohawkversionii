@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.0.6] - 2026-03-17
+### Fixed
+- fix `archive-product.php` sidebar markup.
+
+---
+
 ## [2.0.5] - 2026-03-17
 ### Added
 - **Child theme support improvements** updated logic to fetch parent theme version correctly even when a child theme is active, ensuring ACF auto-import works reliably.
