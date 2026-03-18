@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.0.8] - 2026-03-18
+### Improved
+- added dynamic product mark logo using ACF `site_product_mark_logo` field for `.row-products .product-item-wrap`.
+- removed manual class additions in `content-product-card.php`; CSS now handled automatically via inline style.
+
+---
+
 ## [2.0.7] - 2026-03-18
 ### Fixed
 - fix `archive-product.php` fix sidebar ACF logic.

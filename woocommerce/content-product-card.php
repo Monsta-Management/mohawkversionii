@@ -6,11 +6,7 @@ if ( ! $product ) return false;
 
 // Cache ACF option lookups — these return the same value for every product card
 // but were previously queried 24 times per page (once per card).
-static $mark_logo = null;
 static $bulk_pricing_from = null;
-if ( $mark_logo === null ) {
-    $mark_logo = get_field( 'site_product_mark_logo', 'option' );
-}
 if ( $bulk_pricing_from === null ) {
     $bulk_pricing_from = get_field( 'bulk_pricing_from', 'option' );
 }
@@ -96,7 +92,7 @@ $trophymonsta_video = get_post_meta( $product->get_id(), '_trophymonsta_video', 
 $trophymonsta_image = get_post_meta( $product->get_id(), '_trophymonsta_image', true );
 ?>
 
-<div class="col-sm-2 product-item-wrap <?php if ( $mark_logo ) { echo 'marked'; } ?>" data-new="<?=$infocommunique?>" supplier="<?=$supplier?>" data-rank="<?=$rank;?>">
+<div class="col-sm-2 product-item-wrap" data-new="<?=$infocommunique?>" supplier="<?=$supplier?>" data-rank="<?=$rank;?>">
     <div class="product-item product-card">
 
         <div class="product-inner">

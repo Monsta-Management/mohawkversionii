@@ -154,6 +154,41 @@ if ( ! function_exists( 'mohawkversionii_acf_import_category_settings' ) ) {
 add_action( 'after_setup_theme', 'mohawkversionii_acf_import_category_settings', 5 );
 
 /**
+ * Adds the product mark logo as background for .marked products.
+ * Exclusive to mohawkversionii parent + child theme only.
+ */
+function mohawkversionii_mark_logo() {
+    static $mark_logo_url = null;
+
+    // Only retrieve ACF field once.
+    if ( $mark_logo_url === null ) {
+        $acf = get_field('site_product_mark_logo', 'option');
+        $mark_logo_url = $acf && isset($acf['url']) ? $acf['url'] : '';
+    }
+
+    if ( ! $mark_logo_url ) {
+        return;
+    }
+
+    $custom_css = "
+        .row-products .product-item-wrap .product-inner-img > a::before {
+            background: url('" . esc_url($mark_logo_url) . "') no-repeat center center;
+            background-size: 100% auto;
+            content: '';
+            display: block;
+            position: absolute;
+        }";
+
+    // Attach to the active stylesheet handle.
+    if ( wp_style_is( 'mohawkversionii-child-style', 'enqueued' ) ) {
+        wp_add_inline_style( 'mohawkversionii-child-style', $custom_css ); // If child theme is active.
+    } elseif ( wp_style_is( 'mohawkversionii-style', 'enqueued' ) ) {
+        wp_add_inline_style( 'mohawkversionii-style', $custom_css ); // If parent theme only.
+    }
+}
+add_action( 'wp_enqueue_scripts', 'mohawkversionii_mark_logo', 30 );
+
+/**
  * Custom sort by name.
  */
 function sort_by_name( $a, $b ) {
