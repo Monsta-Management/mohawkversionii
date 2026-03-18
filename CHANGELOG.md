@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.0.9] - 2026-03-18
+### Added
+- added `handleMainMenuCarousel()` to the header main menu.
+
+---
+
 ## [2.0.8] - 2026-03-18
 ### Improved
 - added dynamic product mark logo using ACF `site_product_mark_logo` field for `.row-products .product-item-wrap`.

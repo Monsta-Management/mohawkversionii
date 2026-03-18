@@ -15,7 +15,123 @@
             checkScroll();
         } );
     }
+
+    function handleMainMenuCarousel() {
+        const menuListParent = document.querySelector('#menu-carousel > .menu-main-menu-container');
+        const menuList = document.querySelector('#menu-carousel ul.menu');
+        const menuItems = document.querySelectorAll('#menu-carousel ul.menu li');
+        let currentIndex = 0;
     
+        function createCarousel() {
+            $('#menu-carousel').addClass('active');
+    
+            if (!document.querySelector('#prev-button') && !document.querySelector('#next-button')) {
+                $(menuListParent).parent().append('<button id="prev-button" class="prev">&laquo;</button>');
+                $(menuListParent).parent().append('<button id="next-button" class="next">&raquo;</button>');
+        
+                $('#next-button').on('click', function() {
+                    const maxIndex = getMaxIndex();
+                    if (currentIndex < maxIndex) {
+                        currentIndex++;
+                        updateCarousel();
+                    }
+                });
+        
+                $('#prev-button').on('click', function() {
+                    if (currentIndex > 0) {
+                        currentIndex--;
+                        updateCarousel();
+                    }
+                });
+            }
+    
+            function updateCarousel() {
+                const newPosition = -currentIndex * getMenuItemWidth();
+                menuList.style.transform = `translateX(${newPosition}px)`;
+    
+                $('#prev-button').prop('disabled', currentIndex === 0);
+                $('#next-button').prop('disabled', currentIndex >= getMaxIndex());
+            }
+    
+            function getMenuItemWidth() {
+                const viewportWidth = menuListParent.offsetWidth;
+                let itemWidth = 150; // Default width for fallback.
+    
+                // Determine the number of items to display based on viewport width.
+                if (viewportWidth <= 1024) {
+                    itemWidth = viewportWidth / 6;
+                } else if (viewportWidth <= 1200) {
+                    itemWidth = viewportWidth / 7;
+                } else if (viewportWidth <= 1600) {
+                    itemWidth = viewportWidth / 8;
+                } else {
+                    itemWidth = 150;
+                }
+    
+                // Apply the calculated width to each menu item.
+                menuItems.forEach(item => {
+                    item.style.width = `${itemWidth}px`;
+                });
+    
+                return itemWidth;
+            }
+    
+            function getMaxIndex() {
+                const viewportWidth = menuListParent.offsetWidth;
+                const itemWidth = getMenuItemWidth();
+                const maxItemsVisible = Math.floor(viewportWidth / itemWidth);
+    
+                return Math.max(0, menuItems.length - maxItemsVisible);
+            }
+    
+            function adjustMenuVisibility() {
+                const viewportWidth = menuListParent.offsetWidth;
+                const itemWidth = getMenuItemWidth();
+                const maxItemsVisible = Math.floor(viewportWidth / itemWidth);
+    
+                // Adjust the width of the menu to show only full items.
+                menuList.style.width = `${itemWidth * maxItemsVisible}px`;
+            }
+    
+            adjustMenuVisibility();
+            updateCarousel();
+        }
+    
+        function deleteCarousel() {
+            $('#menu-carousel').removeClass('active');
+            $('#prev-button').remove();
+            $('#next-button').remove();
+            menuList.style.transform = 'translateX(0)';
+            menuList.style.width = 'auto';
+            menuItems.forEach(item => {
+                item.style.width = '';
+            });
+        }
+    
+        function checkScreenWidth() {
+            if (window.innerWidth <= 1600) {
+                createCarousel();
+            } else {
+                deleteCarousel();
+            }
+        }
+    
+        // Initial check on page load.
+        checkScreenWidth();
+    
+        // Event listener for window resize.
+        window.addEventListener('resize', function() {
+            checkScreenWidth();
+    
+            // Additional logic to update carousel on resize.
+            if (document.querySelector('#prev-button') && document.querySelector('#next-button')) {
+                adjustMenuVisibility();
+                currentIndex = 0;
+                updateCarousel();
+            }
+        });
+    }
+
     function headerSubmenu() {
         var target = $( 'header .menu' );
 
@@ -233,6 +349,7 @@
     
     $( document ).ready( function() {
         scrollClass();
+        handleMainMenuCarousel();
         headerSubmenu();
         headerMobileMenu();
         headerMobileTopMenuSubmenu();
