@@ -124,7 +124,7 @@ if ( isset($_GET['orderby']) && $_GET['orderby'] === 'price-high-to-low' ) {
 					?>
 				</div>
 				
-				<?php if ( $enable_fix_sidebar_menu ) { ?>
+				<?php if ( $enable_fix_sidebar_menu == 'yes' ) { ?>
 				    <div id="with-sidebar" class="inner-page-wrap clearfix">
 				        <div class="sidebar-fix">
                             <?php get_template_part('template-parts/category-sidebar'); ?>
