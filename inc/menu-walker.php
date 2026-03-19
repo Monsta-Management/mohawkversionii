@@ -57,65 +57,86 @@ class The_Menu_Walker extends Walker_Nav_Menu {
 			$output .= '</li>';
 		}
 
-		if ( $item->title == 'CATEGORIES' ){
-			global $post;
-			global $wp_query;
-
-			$monsta_parent_array = get_term_by( 'slug', get_field( 'category_slug', 'option' ) ?: 'trophy-specialists', 'product_cat' );
-			$monsta_parent = !empty( $monsta_parent_array->term_id ) ? $monsta_parent_array->term_id : false;
-			$args = array(
+		if ( $item->title === 'CATEGORIES' ) {
+			$parent_slug = get_field( 'category_slug', 'option' ) ?: 'trophy-specialists';
+			$parent_term = get_term_by( 'slug', $parent_slug, 'product_cat' );
+		
+			if ( ! $parent_term ) {
+				return; // Parent category not found, skip.
+			}
+		
+			// Get immediate child categories.
+			$child_categories = get_terms( [
 				'taxonomy'   => 'product_cat',
 				'hide_empty' => false,
-				'parent'     => $monsta_parent
-			);
-
-			$product_cat = get_terms( $args );
-			$product_cat_id = !empty( $wp_query->get_queried_object()->term_id ) ? $wp_query->get_queried_object()->term_id : 1;
-			
-			$ungrouped_array = get_term_by( 'slug', 'ungrouped', 'product_cat' );
-			$ungrouped = $ungrouped_array->term_id;
-			$category = get_queried_object();
-
-			// sort ascending top nav menu
-			$columns = array_column( $product_cat, 'name' );
-			array_multisort( $columns, SORT_ASC, $product_cat );
-
-			// get the active category on carousel for product page
-			if ( is_product() ) {
-				$product_terms = get_the_terms( $post->ID, 'product_cat' );
-				$current_product_cat_ids = array();
-
-				foreach ( $product_terms as $product_term ) {
-					$current_product_cat_ids[] = $product_term->term_id;
+				'parent'     => $parent_term->term_id,
+			] );
+		
+			if ( is_wp_error( $child_categories ) || empty( $child_categories ) ) {
+				return; // Nothing to show.
+			}
+		
+			// Get custom ACF order (IDs).
+			$acf_order = get_field( 'custom_category_order', 'option' );
+			$order_map = ! empty( $acf_order ) && is_array( $acf_order ) ? array_flip( $acf_order ) : [];
+		
+			// Get current product category IDs for highlighting.
+			$current_product_cats = [];
+			if ( is_product() && ! empty( $post->ID ) ) {
+				$terms = get_the_terms( $post->ID, 'product_cat' );
+				if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+					foreach ( $terms as $term ) {
+						$current_product_cats[] = $term->term_id;
+					}
 				}
 			}
-
-			foreach ( $product_cat as $parent_product_cat ) {
-				$thumbnail_id = get_woocommerce_term_meta( $parent_product_cat->term_id, 'thumbnail_id', true );
-				$image = wp_get_attachment_url( $thumbnail_id );
-
-				if ( $parent_product_cat->term_id != $ungrouped && $parent_product_cat->name != 'Uncategorized' ||  $item->classes == 'custom_nav' ) {
-					$checked_cat = $parent_product_cat->term_id == $category->term_id && !empty( $parent_product_cat->term_id ) && !empty( $category->term_id );
-					$checked_parent = $parent_product_cat->term_id == $category->parent && !empty( $parent_product_cat->term_id ) && !empty( $category->parent );
-					$checked_product = (is_product() && in_array($parent_product_cat->term_id, $current_product_cat_ids)) && !empty( $parent_product_cat->term_id ) && !empty( $current_product_cat_ids );
-
-					$output .= '
-						<li class="menu-item menu-item-type-custom menu-item-object-custom '.( ( $checked_cat || $checked_parent || $checked_product ) ? 'current_page_item' : '').'" data-cat="'.$parent_product_cat->term_id.'">
-							<a href="'.get_term_link( $parent_product_cat->term_id ).'">'.$parent_product_cat->name.'</a>
-						</li>';
+		
+			// Filter out uncategorized / ungrouped.
+			$monsta_cats = [];
+			foreach ( $child_categories as $child ) {
+				if ( in_array( $child->slug, [ 'uncategorized', 'ungrouped' ], true ) ) {
+					continue;
 				}
+		
+				$monsta_cats[] = [
+					'id'     => $child->term_id,
+					'name'   => $child->name,
+					'url'    => esc_url( get_term_link( $child ) ),
+					'active' => ( in_array( $child->term_id, $current_product_cats, true ) ),
+				];
 			}
-
-			if ( isset( $_GET['test'] ) ) {
-				print_r( $item->classes ); 
-				echo "<br/> ===== " . $item->title;
+		
+			// Sort by ACF custom order, then fallback alphabetical.
+			if ( ! empty( $order_map ) ) {
+				usort( $monsta_cats, function( $a, $b ) use ( $order_map ) {
+					$posA = $order_map[ $a['id'] ] ?? null;
+					$posB = $order_map[ $b['id'] ] ?? null;
+		
+					if ( $posA !== null && $posB !== null ) return $posA - $posB;
+					if ( $posA !== null ) return -1;
+					if ( $posB !== null ) return 1;
+		
+					return strcmp( $a['name'], $b['name'] );
+				});
+			} else {
+				usort( $monsta_cats, function( $a, $b ) {
+					return strcmp( $a['name'], $b['name'] );
+				});
 			}
-
-			if ( $item->classes == 'custom_nav' ) {
-				$output .= "<li class='" .  implode( " ", $item->classes ) . "' data-cat='".$item->ID."' data-test>";
-				$output .= '<a '.$target_attr.' class="btn-trial" href="' . $item->url . '">'.$item->title.'</a></li>';
+		
+			// Output menu items.
+			foreach ( $monsta_cats as $cat ) {
+				$classes = 'menu-item menu-item-type-tax menu-item-object-product_cat';
+				if ( $cat['active'] ) {
+					$classes .= ' current_page_item';
+				}
+		
+				$output .= '<li class="' . esc_attr( $classes ) . '" data-cat="' . esc_attr( $cat['id'] ) . '">';
+				$output .= '<a href="' . $cat['url'] . '">' . esc_html( $cat['name'] ) . '</a>';
+				$output .= '</li>';
 			}
 		}
+
 		if ( isset( $_GET['test'] ) && $item->classes == 'custom_nav' ) {
 			$output .= "<li class='" .  implode( " ", $item->classes ) . "' data-cat='".$item->ID."' data-test>";
 			$output .= '<a '.$target_attr.' class="btn-trial" href="' . $item->url . '">'.$item->title.'</a></li>';
