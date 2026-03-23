@@ -139,48 +139,60 @@ if ( ! function_exists( 'mohawkversionii_acf_import_category_settings' ) ) {
 
 		// Define Category Settings field group.
 		$category_settings_group = [
-			'key' => $field_group_key,
-			'title' => 'Category Settings',
-			'fields' => [
+			'key'					=> $field_group_key,
+			'title'					=> 'Category Settings',
+			'fields'				=> [
 				[
-					'key' => 'field_64e30926491af',
-					'label' => 'Category Slug',
-					'name' => 'category_slug',
-					'type' => 'text',
+					'key'           => 'field_64e30926491af',
+					'label'         => 'Category Slug',
+					'name'          => 'category_slug',
+					'type'          => 'text',
 					'default_value' => 'monsta-categories',
-					'placeholder' => 'Enter the category slug here e.g: trophy-specialists or monsta-categories',
-					'wrapper' => ['width' => '', 'class' => '', 'id' => ''],
+					'placeholder'   => 'Enter the category slug here e.g: trophy-specialists or monsta-categories',
+					'wrapper'       => ['width' => '', 'class' => '', 'id' => ''],
 				],
 				[
-					'key' => 'field_64f000000001a', // unique key for this field.
-					'label' => 'Custom Category Order',
-					'name' => 'custom_category_order',
-					'type' => 'taxonomy',
-					'taxonomy' => 'product_cat',
-					'field_type' => 'multi_select', // multi select dropdown.
-					'allow_null' => 1,
+					'key'           => 'field_64f000000001a', // unique key for this field.
+					'label'         => 'Custom Category Order',
+					'name'          => 'custom_category_order',
+					'type'          => 'taxonomy',
+					'taxonomy'      => 'product_cat',
+					'field_type'    => 'multi_select', // multi select dropdown.
+					'allow_null'    => 1,
 					'return_format' => 'id', // return term IDs for easy sorting.
-					'add_term' => 0,
-					'multiple' => 1,
-					'wrapper' => ['width' => '', 'class' => '', 'id' => ''],
-					'instructions' => 'Select categories in the order you want them to appear in the featured categories shortcode.',
+					'add_term'      => 0,
+					'multiple'      => 1,
+					'wrapper'       => ['width' => '', 'class' => '', 'id' => ''],
+					'instructions'  => 'Select categories in the order you want them to appear in the featured categories shortcode.',
 				],
+				[
+                	'key'           => 'field_disable_hover_submenu',
+                	'label'         => 'Disable Hover Submenu',
+                	'name'          => 'disable_hover_submenu',
+                	'type'          => 'true_false',
+                	'ui'            => 1,
+                	'ui_on_text'    => 'Toggled Submenu',
+                	'ui_off_text'   => 'Hover',
+                	'default_value' => 0,
+                	'instructions'  => 'When enabled, submenu will not open on hover. A caret icon will appear and users must click it to reveal submenu items.',
+                	'wrapper'       => ['width' => '', 'class' => '', 'id' => ''],
+                ],
 			],
 			'location' => [
 				[
 					[
-						'param' => 'options_page',
-						'operator' => '==',
-						'value' => 'grr-options',
+						'param'     => 'options_page',
+						'operator'  => '==',
+						'value'     => 'grr-options',
 					],
 				],
 			],
-			'menu_order' => 0,
-			'position' => 'normal',
-			'style' => 'default',
-			'label_placement' => 'top',
+			'menu_order'            => 0,
+			'position'              => 'normal',
+			'style'                 => 'default',
+			'label_placement'       => 'top',
 			'instruction_placement' => 'label',
-			'active' => true,
+			'active'                => true,
 		];
 
 		// Register field group.

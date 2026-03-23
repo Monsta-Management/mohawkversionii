@@ -9,19 +9,19 @@
 
 if ( ! defined( 'MOHAWK_VERSION' ) ) {
 	// Replace the version number of the theme on each release.
-	define( 'MOHAWK_VERSION', '2.0.10' );
+	define( 'MOHAWK_VERSION', '2.0.11' );
 }
 
 /**
  * Insert additional header code.
  */
 function secondary_header() {
-    if ( function_exists( 'get_field' ) ) {
-        $schema = get_field( 'header_code' );
-        if ( ! empty( $schema ) ) {
-            echo $schema;
-        }
-    }
+	if ( function_exists( 'get_field' ) ) {
+		$schema = get_field( 'header_code' );
+		if ( ! empty( $schema ) ) {
+			echo $schema;
+		}
+	}
 }
 add_action( 'wp_head', 'secondary_header', 1000 );
 
@@ -30,12 +30,12 @@ add_action( 'wp_head', 'secondary_header', 1000 );
  * Insert tracking codes into the <head>.
  */
 function global_requirements_header() {
-    if ( function_exists( 'get_field' ) ) {
-        $head_tracking_tags = get_field( 'head_tracking_tags', 'option' );
-        if ( ! empty( $head_tracking_tags ) ) {
-            echo $head_tracking_tags;
-        }
-    }
+	if ( function_exists( 'get_field' ) ) {
+		$head_tracking_tags = get_field( 'head_tracking_tags', 'option' );
+		if ( ! empty( $head_tracking_tags ) ) {
+			echo $head_tracking_tags;
+		}
+	}
 }
 add_action( 'wp_head', 'global_requirements_header', 999 );
 
@@ -43,12 +43,12 @@ add_action( 'wp_head', 'global_requirements_header', 999 );
  * Insert tracking codes at the start of <body>.
  */
 function global_requirements_body_start() {
-    if ( function_exists( 'get_field' ) ) {
-        $body_start_tracking_tags = get_field( 'body_start_tracking_tags', 'option' );
-        if ( ! empty( $body_start_tracking_tags ) ) {
-            echo $body_start_tracking_tags;
-        }
-    }
+	if ( function_exists( 'get_field' ) ) {
+		$body_start_tracking_tags = get_field( 'body_start_tracking_tags', 'option' );
+		if ( ! empty( $body_start_tracking_tags ) ) {
+			echo $body_start_tracking_tags;
+		}
+	}
 }
 add_action( 'wp_body_open', 'global_requirements_body_start', 0 );
 
@@ -56,12 +56,12 @@ add_action( 'wp_body_open', 'global_requirements_body_start', 0 );
  * Insert tracking codes before </body>.
  */
 function global_requirements_body_end() {
-    if ( function_exists( 'get_field' ) ) {
-        $body_end_tracking_tags = get_field( 'body_end_tracking_tags', 'option' );
-        if ( ! empty( $body_end_tracking_tags ) ) {
-            echo $body_end_tracking_tags;
-        }
-    }
+	if ( function_exists( 'get_field' ) ) {
+		$body_end_tracking_tags = get_field( 'body_end_tracking_tags', 'option' );
+		if ( ! empty( $body_end_tracking_tags ) ) {
+			echo $body_end_tracking_tags;
+		}
+	}
 }
 add_action( 'wp_footer', 'global_requirements_body_end', 999 );
 
@@ -192,7 +192,7 @@ add_action( 'widgets_init', 'mohawkversionii_widgets_init' );
  * Admin enqueue scripts and styles.
  */
 function custom_dashicons() {
-    wp_enqueue_style( 'custom_dashicons-styles', get_template_directory_uri() . '/includes/glyphter-font/css/monsta-head.css' );
+	wp_enqueue_style( 'custom_dashicons-styles', get_template_directory_uri() . '/includes/glyphter-font/css/monsta-head.css' );
 }
 add_action( 'admin_enqueue_scripts', 'custom_dashicons' );
 
@@ -200,37 +200,37 @@ add_action( 'admin_enqueue_scripts', 'custom_dashicons' );
  * Enqueue scripts and styles.
  */
 function mohawkversionii_scripts() {
-    wp_enqueue_style( 'mohawkversionii-wc-layout', get_site_url() . '/wp-content/plugins/woocommerce/assets/css/woocommerce-layout.css', array(), MOHAWK_VERSION );
-    wp_enqueue_style( 'mohawkversionii-wc-smallscreen', get_site_url() . '/wp-content/plugins/woocommerce/assets/css/woocommerce-smallscreen.css', array(), MOHAWK_VERSION );
-    wp_enqueue_style( 'mohawkversionii-wc-general', get_site_url() . '/wp-content/plugins/woocommerce/assets/css/woocommerce.css', array(), MOHAWK_VERSION );
-    wp_enqueue_style( 'mohawkversionii-bootstrap', get_template_directory_uri() . '/inc/bootstrap/css/bootstrap.min.css', array(), MOHAWK_VERSION );
-    wp_enqueue_style( 'mohawkversionii-monstamanagement', get_site_url() . '/wp-content/plugins/monstamanagement/_inc/trophymonsta.css', array(), MOHAWK_VERSION );
-    wp_enqueue_style( 'mohawkversionii-woo-variation-gallery', get_site_url() . '/wp-content/plugins/monstamanagement/css/variation-image/frontend.css', array(), MOHAWK_VERSION );
-    wp_enqueue_style( 'mohawkversionii-woo-variation-gallery-theme-support', get_site_url() . '/wp-content/plugins/monstamanagement/css/variation-image/theme-support.css', array(), MOHAWK_VERSION );
-    wp_enqueue_style( 'mohawkversionii-fontawesome', get_template_directory_uri() . '/inc/fontawesome/css/all.min.css', array(), MOHAWK_VERSION );
-    wp_enqueue_style( 'mohawkversionii-slick', get_template_directory_uri() . '/lib/slick/slick.css', array(), MOHAWK_VERSION );
-    wp_enqueue_style( 'mohawkversionii-swiper', get_template_directory_uri() . '/lib/swiper/swiper-bundle.min.css', array(), MOHAWK_VERSION );
-    if ( is_product() ) {
+	wp_enqueue_style( 'mohawkversionii-wc-layout', get_site_url() . '/wp-content/plugins/woocommerce/assets/css/woocommerce-layout.css', array(), MOHAWK_VERSION );
+	wp_enqueue_style( 'mohawkversionii-wc-smallscreen', get_site_url() . '/wp-content/plugins/woocommerce/assets/css/woocommerce-smallscreen.css', array(), MOHAWK_VERSION );
+	wp_enqueue_style( 'mohawkversionii-wc-general', get_site_url() . '/wp-content/plugins/woocommerce/assets/css/woocommerce.css', array(), MOHAWK_VERSION );
+	wp_enqueue_style( 'mohawkversionii-bootstrap', get_template_directory_uri() . '/inc/bootstrap/css/bootstrap.min.css', array(), MOHAWK_VERSION );
+	wp_enqueue_style( 'mohawkversionii-monstamanagement', get_site_url() . '/wp-content/plugins/monstamanagement/_inc/trophymonsta.css', array(), MOHAWK_VERSION );
+	wp_enqueue_style( 'mohawkversionii-woo-variation-gallery', get_site_url() . '/wp-content/plugins/monstamanagement/css/variation-image/frontend.css', array(), MOHAWK_VERSION );
+	wp_enqueue_style( 'mohawkversionii-woo-variation-gallery-theme-support', get_site_url() . '/wp-content/plugins/monstamanagement/css/variation-image/theme-support.css', array(), MOHAWK_VERSION );
+	wp_enqueue_style( 'mohawkversionii-fontawesome', get_template_directory_uri() . '/inc/fontawesome/css/all.min.css', array(), MOHAWK_VERSION );
+	wp_enqueue_style( 'mohawkversionii-slick', get_template_directory_uri() . '/lib/slick/slick.css', array(), MOHAWK_VERSION );
+	wp_enqueue_style( 'mohawkversionii-swiper', get_template_directory_uri() . '/lib/swiper/swiper-bundle.min.css', array(), MOHAWK_VERSION );
+	if ( is_product() ) {
 		wp_enqueue_style( 'mohawkversionii-lightbox2', get_template_directory_uri() . '/lib/lightbox2/lightbox.min.css', array(), MOHAWK_VERSION );
 	}
 
-    if ( is_product() ) {
+	if ( is_product() ) {
 		//wp_enqueue_style( 'mohawkversionii-drift', get_template_directory_uri() . '/lib/drift/drift.min.css', array(), MOHAWK_VERSION );
 		wp_enqueue_style( 'mohawkversionii-photoswipe', get_template_directory_uri() . '/lib/photoswipe/css/photoswipe.css', array(), MOHAWK_VERSION );
 	}
-    
+	
 	// Load minified stylesheet for performance (style.min.css), with style.css as RTL fallback.
 	if ( ! is_child_theme() ) {
-        wp_enqueue_style(
-            'mohawkversionii-style',
-            get_template_directory_uri() . '/style.min.css',
-            array(),
-            MOHAWK_VERSION
-        );
-        wp_style_add_data( 'mohawkversionii-style', 'rtl', 'replace' );
-    }
+		wp_enqueue_style(
+			'mohawkversionii-style',
+			get_template_directory_uri() . '/style.min.css',
+			array(),
+			MOHAWK_VERSION
+		);
+		wp_style_add_data( 'mohawkversionii-style', 'rtl', 'replace' );
+	}
 
-    wp_enqueue_script( 'mohawkversionii-bootstrap', get_template_directory_uri() . '/inc/bootstrap/js/bootstrap.bundle.min.js', array(), MOHAWK_VERSION, true );
+	wp_enqueue_script( 'mohawkversionii-bootstrap', get_template_directory_uri() . '/inc/bootstrap/js/bootstrap.bundle.min.js', array(), MOHAWK_VERSION, true );
 	wp_enqueue_script( 'mohawkversionii-navigation', get_template_directory_uri() . '/js/navigation.js', array(), MOHAWK_VERSION, true );
 	wp_enqueue_script( 'mohawkversionii-slick', get_template_directory_uri() . '/lib/slick/slick.min.js', array(), MOHAWK_VERSION, true );
 	wp_enqueue_script( 'mohawkversionii-swiper', get_template_directory_uri() . '/lib/swiper/swiper-bundle.min.js', array(), MOHAWK_VERSION, true );
@@ -249,6 +249,14 @@ function mohawkversionii_scripts() {
 	wp_enqueue_script( 'mohawkversionii-main', get_template_directory_uri() . '/js/scripts.min.js', array('jquery'), MOHAWK_VERSION, true );
 	wp_enqueue_script( 'mohawkversionii-custom', get_template_directory_uri() . '/js/custom-scripts.min.js', array('jquery'), MOHAWK_VERSION, true );
 
+	wp_localize_script( 
+		'mohawkversionii-main',
+		'mohawkSubmenuSettings',
+		[
+			'disableHoverSubmenu' => get_field('disable_hover_submenu', 'option') ? true : false,
+		]
+	);
+
 	// Pass infinite scroll config to JS.
 	if ( is_shop() || is_product_category() || is_product_tag() || is_product_taxonomy() ) {
 		global $wp_query;
@@ -257,6 +265,7 @@ function mohawkversionii_scripts() {
 			$queried = get_queried_object();
 			$current_term = ! empty( $queried->slug ) ? $queried->slug : '';
 		}
+
 		wp_localize_script( 'mohawkversionii-custom', 'mohawkInfinite', array(
 			'ajaxurl'      => admin_url( 'admin-ajax.php' ),
 			'nonce'        => wp_create_nonce( 'mohawk_infinite_nonce' ),
@@ -339,64 +348,64 @@ if ( class_exists( 'WooCommerce' ) ) {
 *
 */
 function remove_old_sorting_hook() {
-    remove_action( 'pre_get_posts', 'sort_woocommerce_products_by_term_ranking' );
+	remove_action( 'pre_get_posts', 'sort_woocommerce_products_by_term_ranking' );
 }
 add_action( 'after_setup_theme', 'remove_old_sorting_hook', 999 );
 
 // Custom sorting options.
 function monsta_customize_product_sorting( $sorting_options ){
-    $sorting_options = array(
-        'menu_order'        => __( 'FILTER PRODUCTS', 'mohawkversionii' ),
-        'popularity'        => __( 'Sort by Popularity', 'mohawkversionii' ),
-        'date'              => __( 'Sort by New', 'mohawkversionii' ),
-        'price-low-to-high' => __( 'Sort by Price: low to high', 'mohawkversionii' ),
-        'price-high-to-low' => __( 'Sort by Price: high to low', 'mohawkversionii' ),
-    );
+	$sorting_options = array(
+		'menu_order'        => __( 'FILTER PRODUCTS', 'mohawkversionii' ),
+		'popularity'        => __( 'Sort by Popularity', 'mohawkversionii' ),
+		'date'              => __( 'Sort by New', 'mohawkversionii' ),
+		'price-low-to-high' => __( 'Sort by Price: low to high', 'mohawkversionii' ),
+		'price-high-to-low' => __( 'Sort by Price: high to low', 'mohawkversionii' ),
+	);
 
-    return $sorting_options;
+	return $sorting_options;
 }
 add_filter( 'woocommerce_catalog_orderby', 'monsta_customize_product_sorting' );
 
 function monsta_get_catalog_ordering_args( $args ) {
-    // Check if the 'orderby' parameter is set
-    if ( isset( $_GET['orderby'] ) ) {
-        switch ( $_GET['orderby'] ) {
-            case 'popularity':
-                $args['orderby'] = 'meta_value_num';
-                $args['meta_key'] = 'total_sales';
-                $args['order'] = 'DESC';
-                break;
-                
-            case 'date':
-                $args['meta_key'] = '_trophymonsta_info_new';
-                $args['orderby'] = 'meta_value';
-                $args['order'] = 'DESC';
-                break;
-                
-            case 'price-low-to-high':
-                $args['orderby'] = 'meta_value_num';
-                $args['meta_key'] = '_price';
-                $args['order'] = 'ASC';
-                $args['meta_type'] = 'DECIMAL';
-                break;
-                
-            case 'price-high-to-low':
-                $args['orderby'] = 'meta_value_num';
-                $args['meta_key'] = '_price';
-                $args['order'] = 'DESC';
-                $args['meta_type'] = 'DECIMAL';
-                break;
-                
-            case 'menu_order':
-            default:
-                $args['meta_key'] = '_trophymonsta_info_new';
-                $args['orderby'] = 'meta_value';
-                $args['order'] = 'DESC';
-                break;
-        }
-    }
+	// Check if the 'orderby' parameter is set
+	if ( isset( $_GET['orderby'] ) ) {
+		switch ( $_GET['orderby'] ) {
+			case 'popularity':
+				$args['orderby'] = 'meta_value_num';
+				$args['meta_key'] = 'total_sales';
+				$args['order'] = 'DESC';
+				break;
+				
+			case 'date':
+				$args['meta_key'] = '_trophymonsta_info_new';
+				$args['orderby'] = 'meta_value';
+				$args['order'] = 'DESC';
+				break;
+				
+			case 'price-low-to-high':
+				$args['orderby'] = 'meta_value_num';
+				$args['meta_key'] = '_price';
+				$args['order'] = 'ASC';
+				$args['meta_type'] = 'DECIMAL';
+				break;
+				
+			case 'price-high-to-low':
+				$args['orderby'] = 'meta_value_num';
+				$args['meta_key'] = '_price';
+				$args['order'] = 'DESC';
+				$args['meta_type'] = 'DECIMAL';
+				break;
+				
+			case 'menu_order':
+			default:
+				$args['meta_key'] = '_trophymonsta_info_new';
+				$args['orderby'] = 'meta_value';
+				$args['order'] = 'DESC';
+				break;
+		}
+	}
 
-    return $args;
+	return $args;
 }
 add_filter( 'woocommerce_get_catalog_ordering_args', 'monsta_get_catalog_ordering_args' );
 

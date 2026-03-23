@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.0.11] - 2026-03-23
+### Added
+- ACF toggle `Disable Hover Submenu` to switch main menu dropdowns from hover to click.
+- Caret icon for submenu items when hover is disabled.
+
+### Improved
+- `headerSubmenu()` JS function updated to respect the ACF toggle.
+
+---
+
 ## [2.0.10] - 2026-03-19
 ### Added
 - added **ACF Category Settings** (parent slug + custom child category order)
