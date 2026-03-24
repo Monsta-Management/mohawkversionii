@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.0.12] - 2026-03-24
+### Improved
+- enqueue Lightbox2 global and not only for WooCommerce product only.
+
+---
+
 ## [2.0.11] - 2026-03-23
 ### Added
 - ACF toggle `Disable Hover Submenu` to switch main menu dropdowns from hover to click.
