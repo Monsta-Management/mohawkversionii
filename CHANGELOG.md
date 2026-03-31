@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.1.0] - 2026-03-30
+### Added
+- spinning image/video `bucket hosted` support with still `trophymonstavalidator` plugin dependent.
+
+---
+
 ## [2.0.12] - 2026-03-24
 ### Improved
 - enqueue Lightbox2 global and not only for WooCommerce product only.
