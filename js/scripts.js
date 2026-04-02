@@ -397,7 +397,6 @@
 
 	// Spinning image on HOVER start //
 	function shouldInitHoverVideo() {
-		console.log('Video HOVER!');
 		return document.querySelector('.product-item-wrap .product-card[data-video-url]');
 	}
 

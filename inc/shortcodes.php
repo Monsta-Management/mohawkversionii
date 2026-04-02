@@ -44,60 +44,62 @@ add_shortcode( 'home_content', 'shortcode_home_content' );
 ** Featured products shortcode - [uproar_featured_products]
 */
 function shortcode_featured_products() {
-	// save ranking data to sessioin.
-	set_product_ids_by_term_ranking();
 
 	ob_start();
 
-	$image = get_template_directory_uri() . '/images/temporary/medal.jpg';
+	// Get globally sorted product IDs (rank + full priority logic) from mohawkversionii/inc/template-functions.php
+	$sorted_ids = get_cached_sorted_product_ids();
 
 	$args = array(
 		'post_type'      => 'product',
 		'posts_per_page' => 6,
 		'tax_query'      => [
-				[
-					'taxonomy' => 'product_visibility',
-					'field'    => 'name',
-					'terms'    => 'featured',    
-				],
+			[
+				'taxonomy' => 'product_visibility',
+				'field'    => 'name',
+				'terms'    => 'featured',
 			],
-		);
+		],
+	);
 
-	// filter products from rank session data
-	if ( ! empty( $_SESSION['sess_rank_product_ids'] ) ) {
-		$args['post__in'] = $_SESSION['sess_rank_product_ids'];
-		$args['orderby'] = 'post__in';
+	// Apply sorted order.
+	if ( ! empty( $sorted_ids ) ) {
+		$args['post__in'] = $sorted_ids;
+		$args['orderby']  = 'post__in';
 	}
-	
+
 	$result = new WP_Query( $args );
 
+	// Fallback: if no featured products, just use sorted products.
 	if ( ! $result->have_posts() ) {
+
 		$args = [
-			'post_type' => 'product',
-			'posts_per_page' => 6    
+			'post_type'      => 'product',
+			'posts_per_page' => 6,
 		];
 
-		// products from ranked categories.
-		if ( ! empty( $_SESSION['sess_rank_product_ids'] ) ) {
-			$args['post__in'] = $_SESSION['sess_rank_product_ids'];
-			$args['orderby'] = 'post__in';
+		if ( ! empty( $sorted_ids ) ) {
+			$args['post__in'] = $sorted_ids;
+			$args['orderby']  = 'post__in';
 		}
-		
+
 		$result = new WP_Query( $args );
 	}
 	?>
+
 	<?php if ( $result->have_posts() ) { ?>
 		<div class="row row-products">
 			<?php
-				while ( $result->have_posts() ) :
-					$result->the_post();
-					wc_get_template_part( 'content', 'product-card' );
-				endwhile;
+			while ( $result->have_posts() ) :
+				$result->the_post();
+				wc_get_template_part( 'content', 'product-card' );
+			endwhile;
+			wp_reset_postdata();
 			?>
 		</div>
 	<?php } ?>
-	<?php
 
+	<?php
 	return ob_get_clean();
 }
 add_shortcode( 'uproar_featured_products', 'shortcode_featured_products' );
@@ -433,40 +435,6 @@ add_shortcode( 'custom-mini-cart', 'custom_mini_cart' );
 /*
 ** Shortcode for search form - [product_count]
 */
-/*function product_count_shortcode() {
-	$total_count = 0;
-
-	$args = [
-		'post_type'      => 'product',
-		'post_status'    => 'publish',
-		'posts_per_page' => -1,
-		'fields'         => 'ids'    
-	];
-	
-	$products = new WP_Query( $args );
-
-	if ( $products->have_posts() ) {
-		foreach ( $products->posts as $product_id ) {
-			// Get the variations for each product.
-			$args = array(
-				'post_type'   => 'product_variation',
-				'post_status' => 'publish',
-				'post_parent' => $product_id
-			);
-			
-			$variations = new WP_Query( $args );
-
-			if ( $variations->have_posts() ) {
-				$total_count += $variations->found_posts;
-			} else {
-				$total_count += 1;
-			}
-		}
-	}
-
-	return $total_count;
-}
-add_shortcode( 'product_count', 'product_count_shortcode' );*/
 function update_product_and_variation_count_cache() {
 	// Initialize counts.
 	$product_count = 0;

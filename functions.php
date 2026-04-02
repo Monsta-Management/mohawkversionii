@@ -9,7 +9,7 @@
 
 if ( ! defined( 'MOHAWK_VERSION' ) ) {
 	// Replace the version number of the theme on each release.
-	define( 'MOHAWK_VERSION', '2.1.2' );
+	define( 'MOHAWK_VERSION', '2.2.0-alpha' );
 }
 
 /**
@@ -341,7 +341,7 @@ if ( class_exists( 'WooCommerce' ) ) {
 * PRODUCT SORTING OVERRIDES START
 *
 */
-function remove_old_sorting_hook() {
+/*function remove_old_sorting_hook() {
 	remove_action( 'pre_get_posts', 'sort_woocommerce_products_by_term_ranking' );
 }
 add_action( 'after_setup_theme', 'remove_old_sorting_hook', 999 );
@@ -401,7 +401,7 @@ function monsta_get_catalog_ordering_args( $args ) {
 
 	return $args;
 }
-add_filter( 'woocommerce_get_catalog_ordering_args', 'monsta_get_catalog_ordering_args' );
+add_filter( 'woocommerce_get_catalog_ordering_args', 'monsta_get_catalog_ordering_args' );*/
 
 /**
  * AJAX handler for infinite scroll product loading.
@@ -412,60 +412,54 @@ function mohawk_infinite_scroll_handler() {
 
 	$paged    = isset( $_GET['paged'] ) ? absint( $_GET['paged'] ) : 1;
 	$per_page = isset( $_GET['per_page'] ) ? absint( $_GET['per_page'] ) : 24;
-	$orderby  = isset( $_GET['orderby'] ) ? sanitize_text_field( $_GET['orderby'] ) : 'menu_order';
 	$category = isset( $_GET['category'] ) ? sanitize_text_field( $_GET['category'] ) : '';
 
-	$args = array(
+	// Get fully cached sorted product IDs from mohawkversion/inc/template-functions.php
+	$all_product_ids = get_cached_sorted_product_ids(); // returns array of post IDs sorted by ranking
+
+	// Get pre-cached category mapping (product_id => array of category_ids). If not cached, generate once and cache for future requests.
+	$category_map = get_transient('mohawk_product_category_map');
+	if ( false === $category_map ) {
+		$category_map = [];
+		foreach ( $all_product_ids as $pid ) {
+			$terms = wp_get_post_terms( $pid, 'product_cat', [ 'fields' => 'ids' ] );
+			$category_map[ $pid ] = $terms ?: [];
+		}
+
+		set_transient( 'mohawk_product_category_map', $category_map, HOUR_IN_SECONDS ); // cache it for 1 hour.
+	}
+
+	if ( ! empty( $category ) ) {
+		$term = get_term_by( 'slug', $category, 'product_cat' );
+		if ( $term && ! is_wp_error( $term ) ) {
+			$term_id = (int) $term->term_id;
+			$all_product_ids = array_filter( $all_product_ids, function( $pid ) use ( $category_map, $term_id ) {
+				return in_array( $term_id, $category_map[ $pid ] );
+			});
+		}
+	}
+
+	$total_products = count( $all_product_ids );
+	$max_pages      = ceil( $total_products / $per_page );
+	$offset         = ( $paged - 1 ) * $per_page;
+	$page_ids       = array_slice( $all_product_ids, $offset, $per_page );
+
+	if ( empty( $page_ids ) ) {
+		wp_send_json_success( [
+			'html'      => '',
+			'max_pages' => $max_pages,
+			'page'      => $paged,
+		] );
+	}
+
+	$query = new WP_Query( [
 		'post_type'      => 'product',
 		'post_status'    => 'publish',
+		'post__in'       => $page_ids,
+		'orderby'        => 'post__in', // keep the order from $all_product_ids.
 		'posts_per_page' => $per_page,
-		'paged'          => $paged,
-	);
-
-	// Apply ordering matching monsta_get_catalog_ordering_args logic.
-	switch ( $orderby ) {
-		case 'popularity':
-			$args['orderby']  = 'meta_value_num';
-			$args['meta_key'] = 'total_sales';
-			$args['order']    = 'DESC';
-			break;
-		case 'date':
-			$args['meta_key'] = '_trophymonsta_info_new';
-			$args['orderby']  = 'meta_value';
-			$args['order']    = 'DESC';
-			break;
-		case 'price-low-to-high':
-			$args['orderby']   = 'meta_value_num';
-			$args['meta_key']  = '_price';
-			$args['order']     = 'ASC';
-			$args['meta_type'] = 'DECIMAL';
-			break;
-		case 'price-high-to-low':
-			$args['orderby']   = 'meta_value_num';
-			$args['meta_key']  = '_price';
-			$args['order']     = 'DESC';
-			$args['meta_type'] = 'DECIMAL';
-			break;
-		case 'menu_order':
-		default:
-			$args['meta_key'] = '_trophymonsta_info_new';
-			$args['orderby']  = 'meta_value';
-			$args['order']    = 'DESC';
-			break;
-	}
-
-	// Filter by category if provided.
-	if ( ! empty( $category ) ) {
-		$args['tax_query'] = array(
-			array(
-				'taxonomy' => 'product_cat',
-				'field'    => 'slug',
-				'terms'    => $category,
-			),
-		);
-	}
-
-	$query = new WP_Query( $args );
+		'no_found_rows'  => true,
+	]);
 
 	ob_start();
 	if ( $query->have_posts() ) {
@@ -477,11 +471,11 @@ function mohawk_infinite_scroll_handler() {
 	}
 	$html = ob_get_clean();
 
-	wp_send_json_success( array(
+	wp_send_json_success( [
 		'html'      => $html,
-		'max_pages' => intval( $query->max_num_pages ),
+		'max_pages' => $max_pages,
 		'page'      => $paged,
-	) );
+	] );
 }
 add_action( 'wp_ajax_mohawk_infinite_scroll', 'mohawk_infinite_scroll_handler' );
 add_action( 'wp_ajax_nopriv_mohawk_infinite_scroll', 'mohawk_infinite_scroll_handler' );

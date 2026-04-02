@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.2.0-alpha] - 2026-04-02
+### Improved
+- refactor product sort order:
+    - Rank → NEW + S3 Video OR NEW + S3 Image → 9
+    - NEW + S3 Video OR NEW + Local Image → 8
+    - NOT NEW + S3 Video OR NOT NEW + S3 Image → 7
+    - NOT NEW + S3 Video OR NOT NEW + Local Image → 6
+    - NEW + NO S3 Video + NEW + S3 Image → 5
+    - NEW + NO S3 Video + NEW + Local Image → 4
+    - NOT NEW + NO S3 Video + NOT NEW + S3 Image → 3
+    - NOT NEW + NO S3 Video + NOT NEW + Local Image → 2
+    - Others → 1
+- improved product ranking system to include all products, handle multiple category rankings correctly, and ensure consistent results.
+- fixed session handling, duplicate entries, and missing rank issues while adding caching for better performance.
+
+---
+
 ## [2.1.2] - 2026-04-02
 ### Improved
 - moved JS and CSS from `trophymonstavalidator` to `mohawkversionii` base code.

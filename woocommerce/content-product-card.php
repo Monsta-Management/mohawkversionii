@@ -50,9 +50,6 @@ $color_codes = [
 	'gold'   => 'color-3',
 ];
 
-$rank = get_product_rank( $product->id );
-$rank = empty( $rank ) ? 'no-rank-provided' : $rank;
-
 // Get the product supplier.
 $supplier = get_the_terms( $product->id, 'trophymonsta_brand', true );
 $supplier = empty( $supplier ) ? 'unknown' : $supplier[0]->name;
@@ -93,24 +90,24 @@ $trophymonsta_image = '';
 
 // NOTE: `trophymonsta_valids3url` and `_trophymonsta_valids3image` are temporary solution until EV validate their data first from Grr.
 if ( defined( 'TROPHYMONSTA_VALIDATOR_VERSION' ) ) {
-    $product_meta = get_post_meta( $product->get_id() );
+	$product_meta = get_post_meta( $product->get_id() );
 
-    if ( ! empty( $product_meta['_trophymonsta_valids3url'][0] ) ) {
-        $trophymonsta_video = $product_meta['_trophymonsta_valids3url'][0];
-    }
+	if ( ! empty( $product_meta['_trophymonsta_valids3url'][0] ) ) {
+		$trophymonsta_video = $product_meta['_trophymonsta_valids3url'][0];
+	}
 
-    if ( ! empty( $product_meta['_trophymonsta_valids3image'][0] ) ) {
-        $trophymonsta_image = $product_meta['_trophymonsta_valids3image'][0];
-    } 
+	if ( ! empty( $product_meta['_trophymonsta_valids3image'][0] ) ) {
+		$trophymonsta_image = $product_meta['_trophymonsta_valids3image'][0];
+	} 
 }
 
 if ( empty( $trophymonsta_image ) ) {
-    $trophymonsta_image = $thumb_url; // Fallback to local image if no validated S3 image.
+	$trophymonsta_image = $thumb_url; // Fallback to local image if no validated S3 image.
 }
 // SPINNING video/image display END.
 ?>
 
-<div class="col-sm-2 product-item-wrap" data-new="<?=$infocommunique?>" supplier="<?=$supplier?>" data-rank="<?=$rank;?>">
+<div class="col-sm-2 product-item-wrap">
 	<div class="product-item product-card"
 		<?php if ( $trophymonsta_video ) :  // SPINNING video/image display START. ?>
 			data-video-url="<?php echo esc_url( $trophymonsta_video ); ?>"
@@ -124,11 +121,7 @@ if ( empty( $trophymonsta_image ) ) {
 			<div class="product-inner-img">
 				<?php echo $badge; ?>
 				<a href="<?php echo esc_url( get_permalink() ); ?>">
-					<?php if ( $trophymonsta_image ) : ?>
-						<img src="<?php echo esc_url( $trophymonsta_image ); ?>" loading="lazy" alt="<?php echo esc_attr( get_the_title() ); ?>">
-					<?php else : ?>
-						<img src="<?php echo esc_url( $thumb_url ); ?>" loading="lazy" alt="<?php echo esc_attr( get_the_title() ); ?>">
-					<?php endif; ?>
+					<img src="<?php echo esc_url( $trophymonsta_image ); ?>" loading="lazy" alt="<?php echo esc_attr( get_the_title() ); ?>">
 				</a>
 			</div>
 			<div class="product-inner-link">

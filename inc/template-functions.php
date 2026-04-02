@@ -166,17 +166,17 @@ if ( ! function_exists( 'mohawkversionii_acf_import_category_settings' ) ) {
 					'instructions'  => 'Select categories in the order you want them to appear in the featured categories shortcode.',
 				],
 				[
-                	'key'           => 'field_disable_hover_submenu',
-                	'label'         => 'Disable Hover Submenu',
-                	'name'          => 'disable_hover_submenu',
-                	'type'          => 'true_false',
-                	'ui'            => 1,
-                	'ui_on_text'    => 'Toggled Submenu',
-                	'ui_off_text'   => 'Hover',
-                	'default_value' => 0,
-                	'instructions'  => 'When enabled, submenu will not open on hover. A caret icon will appear and users must click it to reveal submenu items.',
-                	'wrapper'       => ['width' => '', 'class' => '', 'id' => ''],
-                ],
+					'key'           => 'field_disable_hover_submenu',
+					'label'         => 'Disable Hover Submenu',
+					'name'          => 'disable_hover_submenu',
+					'type'          => 'true_false',
+					'ui'            => 1,
+					'ui_on_text'    => 'Toggled Submenu',
+					'ui_off_text'   => 'Hover',
+					'default_value' => 0,
+					'instructions'  => 'When enabled, submenu will not open on hover. A caret icon will appear and users must click it to reveal submenu items.',
+					'wrapper'       => ['width' => '', 'class' => '', 'id' => ''],
+				],
 			],
 			'location' => [
 				[
@@ -255,14 +255,14 @@ function custom_pagination( $numpages = '', $pagerange = '', $paged = '', $wp_qu
 	}
 
 	global $paged;
-	
+
 	if ( empty( $paged ) ) {
 		$paged = 1;
 	}
-	
+
 	if ( $numpages == '' ) {
 		$numpages = $wp_query->max_num_pages;
-		
+
 		if ( ! $numpages ) {
 			$numpages = 1;
 		}
@@ -288,7 +288,7 @@ function custom_pagination( $numpages = '', $pagerange = '', $paged = '', $wp_qu
 		'next_text'    => __( '<i class="fas fa-chevron-right"></i>' ) ,
 		'type'         => 'plain',
 		'add_args'     => false,
-		'add_fragment' => '',    
+		'add_fragment' => '',
 	];
 
 	$paginate_links = paginate_links( $pagination_args );
@@ -328,23 +328,23 @@ add_filter( 'woocommerce_checkout_fields', 'company_first_billing' );
 function override_placeholder_fields( $fields ) {
 	$fields['billing']['billing_company']['placeholder'] = 'Company/Club/Business Name';
 	$fields['shipping']['shipping_company']['placeholder'] = 'Company/Club/Business Name';
-	
+
 	$fields['billing']['billing_first_name']['placeholder'] = 'First name';
 	$fields['shipping']['shipping_first_name']['placeholder'] = 'First name';
-	
+
 	$fields['shipping']['shipping_last_name']['placeholder'] = 'Last name';
 	$fields['billing']['billing_last_name']['placeholder'] = 'Last name';
-	
-	
+
+
 	$fields['billing']['billing_email']['placeholder'] = 'Email address ';
 	$fields['billing']['billing_phone']['placeholder'] = 'Phone ';
-	
+
 	$fields['billing']['billing_city']['placeholder'] = 'Suburb ';
 	$fields['shipping']['shipping_city']['placeholder'] = 'Suburb ';
-	
+
 	$fields['billing']['billing_postcode']['placeholder'] = 'Postcode ';
 	$fields['shipping']['shipping_postcode']['placeholder'] = 'Postcode ';
-	
+
 	return $fields;
 }
 add_filter('woocommerce_checkout_fields', 'override_placeholder_fields');
@@ -392,7 +392,7 @@ add_filter( 'woocommerce_add_to_cart_redirect', 'bbloomer_redirect_checkout_add_
  * Sorting.
  */
 remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
-add_action( 'woo_custom_catalog_ordering', 'woocommerce_catalog_ordering', 30 ); 
+add_action( 'woo_custom_catalog_ordering', 'woocommerce_catalog_ordering', 30 );
 
 /*
  * Add custom fields to user / checkout
@@ -422,117 +422,103 @@ function my_custom_checkout_field_update_order_meta( $order_id ) {
 }
 add_action( 'woocommerce_checkout_update_order_meta', 'my_custom_checkout_field_update_order_meta' );
 
-//============= RANKING ORDER ========================//
-function set_product_ids_by_term_ranking() {
-	if ( ! session_id() ) {
-		session_start();
+//============= PRODUCT RANKING/SORTING START ========================//
+/**
+ * Get cached sorted product IDs based on rank + NEW + video/image/local image priority
+ */
+function get_cached_sorted_product_ids() {
+	$cache_key = 'trophymonsta_sorted_product_ids';
+
+	// Try cache first (12 hours)
+	$product_ids = get_transient( $cache_key );
+	if ( $product_ids !== false ) {
+		return $product_ids;
 	}
-	
-	session_unset();
-	session_destroy();
-	
-	if ( ! isset( $_SESSION['sess_rank_product_ids'] ) ) {
-		$cached_data = get_transient( 'term_ranking_product_data' );
-	
-		if ( $cached_data ) {
-			$_SESSION['sess_rank_product_ids'] = $cached_data['product_ids'];
-			$_SESSION['sess_rank_product_ids_level'] = $cached_data['product_ranks'];
-			return;
-		}
-	
-		// Query the database if no cached data found
-		global $wpdb;
-		$product_ids = [];
-		$product_ranks = [];
-	
-		$ranked_products = $wpdb->get_results( "
-			SELECT p.ID, tm.meta_value AS `rank`
-			FROM {$wpdb->prefix}posts AS p
-			INNER JOIN {$wpdb->prefix}term_relationships AS tr ON p.ID = tr.object_id
-			INNER JOIN {$wpdb->prefix}term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
-			INNER JOIN {$wpdb->prefix}termmeta AS tm ON tm.term_id = tt.term_id
-			WHERE p.post_type = 'product' 
-			  AND p.post_status = 'publish' 
-			  AND tm.meta_key LIKE '%ranking%'
-			ORDER BY CAST(tm.meta_value AS UNSIGNED) ASC
-		" );
-	
-		foreach ( $ranked_products as $product ) {
-			$product_ids[] = $product->ID;
-			$product_ranks[$product->ID] = ( int ) $product->rank;
-		}
-	
-		$cached_data = [
-			'product_ids'  => $product_ids,
-			'product_ranks' => $product_ranks,
-		];
-		
-		set_transient( 'term_ranking_product_data', $cached_data, 24 * HOUR_IN_SECONDS );
-	
-		$_SESSION['sess_rank_product_ids'] = $product_ids;
-		$_SESSION['sess_rank_product_ids_level'] = $product_ranks;
-	}
+
+	global $wpdb;
+
+	/*
+	PRIORITY WEIGHTS:
+	1. Rank → NEW + S3 Video OR NEW + S3 Image → 9
+	2. NEW + S3 Video OR NEW + Local Image → 8
+	3. NOT NEW + S3 Video OR NOT NEW + S3 Image → 7
+	4. NOT NEW + S3 Video OR NOT NEW + Local Image → 6
+	5. NEW + NO S3 Video + NEW + S3 Image → 5
+	6. NEW + NO S3 Video + NEW + Local Image → 4
+	7. NOT NEW + NO S3 Video + NOT NEW + S3 Image → 3
+	8. NOT NEW + NO S3 Video + NOT NEW + Local Image → 2
+	9. Others → 1
+	*/
+
+	$product_ids = $wpdb->get_col("
+		SELECT p.ID
+		FROM {$wpdb->prefix}posts AS p
+		LEFT JOIN {$wpdb->prefix}postmeta AS pm_rank       ON pm_rank.post_id = p.ID AND pm_rank.meta_key LIKE '%ranking%'
+		LEFT JOIN {$wpdb->prefix}postmeta AS pm_info_new   ON pm_info_new.post_id = p.ID AND pm_info_new.meta_key = '_trophymonsta_info_new'
+		LEFT JOIN {$wpdb->prefix}postmeta AS pm_video      ON pm_video.post_id = p.ID AND pm_video.meta_key = '_trophymonsta_valids3url'
+		LEFT JOIN {$wpdb->prefix}postmeta AS pm_s3_image   ON pm_s3_image.post_id = p.ID AND pm_s3_image.meta_key = '_trophymonsta_valids3image'
+		LEFT JOIN {$wpdb->prefix}postmeta AS pm_local_img  ON pm_local_img.post_id = p.ID AND pm_local_img.meta_key = '_trophymonsta_image'
+		WHERE p.post_type = 'product' AND p.post_status = 'publish'
+		ORDER BY
+			CAST(pm_rank.meta_value AS UNSIGNED) ASC,
+			CASE
+				WHEN pm_info_new.meta_value = 'Yes' AND pm_video.meta_value IS NOT NULL THEN 9
+				WHEN pm_info_new.meta_value = 'Yes' AND pm_s3_image.meta_value IS NOT NULL THEN 8
+				WHEN (pm_info_new.meta_value IS NULL OR pm_info_new.meta_value != 'Yes') AND pm_video.meta_value IS NOT NULL THEN 7
+				WHEN (pm_info_new.meta_value IS NULL OR pm_info_new.meta_value != 'Yes') AND pm_local_img.meta_value IS NOT NULL THEN 6
+				WHEN pm_info_new.meta_value = 'Yes' AND pm_video.meta_value IS NULL AND pm_s3_image.meta_value IS NOT NULL THEN 5
+				WHEN pm_info_new.meta_value = 'Yes' AND pm_video.meta_value IS NULL AND pm_local_img.meta_value IS NOT NULL THEN 4
+				WHEN (pm_info_new.meta_value IS NULL OR pm_info_new.meta_value != 'Yes') AND pm_video.meta_value IS NULL AND pm_s3_image.meta_value IS NOT NULL THEN 3
+				WHEN (pm_info_new.meta_value IS NULL OR pm_info_new.meta_value != 'Yes') AND pm_video.meta_value IS NULL AND pm_local_img.meta_value IS NOT NULL THEN 2
+				ELSE 1
+			END DESC,
+			p.ID ASC
+	");
+
+	set_transient( $cache_key, $product_ids, 12 * HOUR_IN_SECONDS ); // cache for 12 hours.
+
+	return $product_ids;
 }
 
-function sort_woocommerce_products_by_term_ranking( $query ) {
+/**
+ * Hook into WooCommerce main query for shop/category pages
+ */
+function sort_woocommerce_products_by_rank_cached( $query ) {
 	if ( $query->is_main_query() && ( is_shop() || is_product_category() ) ) {
-		set_product_ids_by_term_ranking();
-
-		// Fetch sorted product IDs and ranks from session
-		$product_ids = $_SESSION['sess_rank_product_ids'] ?? [];
-		$product_ranks = $_SESSION['sess_rank_product_ids_level'] ?? [];
-
+		$product_ids = get_cached_sorted_product_ids();
 		if ( ! empty( $product_ids ) ) {
-			// Preload necessary post meta for sorting
-			$meta_cache = [];
-			foreach ( $product_ids as $product_id ) {
-				$meta_cache[ $product_id ] = [
-					'info_new' => get_post_meta( $product_id, '_trophymonsta_info_new', true ) === 'Yes' ? 1 : 0,
-					'video'    => get_post_meta( $product_id, '_trophymonsta_valids3url', true ) ? 1 : 0,
-					'image'    => get_post_meta( $product_id, '_trophymonsta_image', true ) ? 1 : 0,
-				];
-			}
-
-			// Sort the products based on ranks and meta values
-			usort( $product_ids, function( $a, $b ) use ( $product_ranks, $meta_cache ) {
-				// Compare term ranks (lower rank value comes first)
-				$rank_a = $product_ranks[ $a ] ?? PHP_INT_MAX;
-				$rank_b = $product_ranks[ $b ] ?? PHP_INT_MAX;
-				if ( $rank_a !== $rank_b ) {
-					return $rank_a - $rank_b; // Lower rank value has higher priority
-				}
-
-				// Compare `_trophymonsta_info_new` (1 for Yes, 0 for No)
-				$info_new_a = $meta_cache[ $a ]['info_new'];
-				$info_new_b = $meta_cache[ $b ]['info_new'];
-				if ( $info_new_a !== $info_new_b ) {
-					return $info_new_b - $info_new_a;
-				}
-
-				// Compare `_trophymonsta_video` and `_trophymonsta_image` (sum of priorities).
-				$priority_a = $meta_cache[ $a ]['video'] + $meta_cache[ $a ]['image'];
-				$priority_b = $meta_cache[ $b ]['video'] + $meta_cache[ $b ]['image'];
-				return $priority_b - $priority_a; // Higher priority goes first
-			});
-
-			// Update query with sorted product IDs.
 			$query->set( 'post__in', $product_ids );
 			$query->set( 'orderby', 'post__in' );
 		}
 	}
 }
-add_action( 'pre_get_posts', 'sort_woocommerce_products_by_term_ranking', 99 );
+add_action( 'pre_get_posts', 'sort_woocommerce_products_by_rank_cached', 99 );
 
-// Invalidate cache when product or term ranking data changes
-function clear_product_cache_on_update() {
-	delete_transient( 'term_ranking_product_data' );
+/**
+ * Clear cached product IDs when product is updated
+ */
+function clear_sorted_product_cache( $post_id ) {
+	if ( get_post_type( $post_id ) === 'product' ) {
+		delete_transient( 'trophymonsta_sorted_product_ids' );
+	}
 }
-add_action( 'save_post_product', 'clear_product_cache_on_update' );
-add_action( 'edited_term', 'clear_product_cache_on_update' );
+add_action( 'save_post_product', 'clear_sorted_product_cache' );
 
-// Function to retrieve the rank of a product
-function get_product_rank( $product_id ) {
-	$product_ranks = $_SESSION['sess_rank_product_ids_level'] ?? [];
-	return $product_ranks[ $product_id ] ?? false;
+/**
+ * Clear cache if relevant meta changes
+ */
+function clear_sorted_product_cache_on_meta_update( $meta_id, $post_id, $meta_key, $meta_value ) {
+	$relevant_keys = [
+		'_trophymonsta_info_new',
+		'_trophymonsta_valids3url',
+		'_trophymonsta_valids3image',
+		'_trophymonsta_image'
+	];
+	if ( get_post_type( $post_id ) === 'product' && in_array( $meta_key, $relevant_keys, true ) ) {
+		delete_transient( 'trophymonsta_sorted_product_ids' );
+	}
 }
-//============= END OF :: RANKING ORDER ========================//
+add_action( 'updated_postmeta', 'clear_sorted_product_cache_on_meta_update', 10, 4 );
+add_action( 'added_postmeta',   'clear_sorted_product_cache_on_meta_update', 10, 4 );
+add_action( 'deleted_postmeta', 'clear_sorted_product_cache_on_meta_update', 10, 4 );
+//============= PRODUCT RANKING/SORTING END ========================//
