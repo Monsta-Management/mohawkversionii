@@ -91,17 +91,21 @@ $bulk_price = round($bulk_price, 2);
 $trophymonsta_video = '';
 $trophymonsta_image = '';
 
-if ( function_exists( 'trophymonsta_validate_s3_url' ) || defined( 'TROPHYMONSTA_VALIDATOR_VERSION' ) ) {
-	$product_meta = get_post_meta( $product->get_id() );
+// NOTE: `trophymonsta_valids3url` and `_trophymonsta_valids3image` are temporary solution until EV validate their data first from Grr.
+if ( defined( 'TROPHYMONSTA_VALIDATOR_VERSION' ) ) {
+    $product_meta = get_post_meta( $product->get_id() );
 
-	// NOTE: `trophymonsta_valids3url` is a temporary solution until EV validate their data first from Grr.
-	if ( ! empty( $product_meta['_trophymonsta_valids3url'][0] ) ) {
-		$trophymonsta_video = $product_meta['_trophymonsta_valids3url'][0];
-	}
+    if ( ! empty( $product_meta['_trophymonsta_valids3url'][0] ) ) {
+        $trophymonsta_video = $product_meta['_trophymonsta_valids3url'][0];
+    }
 
-	if ( ! empty( $product_meta['_trophymonsta_image'][0] ) ) {
-		$trophymonsta_image = $product_meta['_trophymonsta_image'][0];
-	}
+    if ( ! empty( $product_meta['_trophymonsta_valids3image'][0] ) ) {
+        $trophymonsta_image = $product_meta['_trophymonsta_valids3image'][0];
+    } 
+}
+
+if ( empty( $trophymonsta_image ) ) {
+    $trophymonsta_image = $thumb_url; // Fallback to local image if no validated S3 image.
 }
 // SPINNING video/image display END.
 ?>
