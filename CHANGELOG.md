@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.1.2] - 2026-04-02
+### Improved
+- moved JS and CSS from `trophymonstavalidator` to `mohawkversionii` base code.
+
+---
+
 ## [2.1.1] - 2026-04-02
 ### Added
 - use the validated `_trophymonsta_image` by `trophymonstavalidator` plugin on the frontend.

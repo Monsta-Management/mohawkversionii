@@ -4,7 +4,7 @@ Theme URI: https://www.monstamanagement.com/
 Author: MonstaManagement
 Author URI: https://www.monstamanagement.com/
 Description: Mohawk theme version 2.
-Version: 2.1.1
+Version: 2.1.2
 Tested up to: 5.4
 Requires PHP: 5.6
 License: GNU General Public License v2 or later
@@ -3756,6 +3756,30 @@ table.mobile-price-table {
 .custom-logo-link {
   display: inline-block; }
 
+/* Spinning image CSS start */
+@keyframes video-spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg); }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg); } }
+.product-item-wrap .product-inner-img > a {
+  height: 100%;
+  left: 0;
+  object-fit: contain;
+  position: absolute;
+  top: 0;
+  width: 100%; }
+
+.product-item-wrap .product-inner-img video {
+  height: 100%;
+  left: 0;
+  object-fit: contain;
+  position: absolute;
+  top: 0;
+  transition: all 500000ms;
+  width: 100%;
+  z-index: 10; }
+
 /* Captions
 --------------------------------------------- */
 .wp-caption {
@@ -5301,20 +5325,6 @@ table.shop_table_responsive tr td {
     display: block !important; }
     .row_product_result .infinite-wrap.infinite-process .loading-container img {
       width: auto !important; }
-  .row_product_result .infinite-wrap .infinite-loader {
-    padding: 2em 0;
-    color: #888;
-    font-size: 0.95em;
-    transition: opacity 0.3s ease; }
-  .row_product_result .infinite-wrap.infinite-process .infinite-loader {
-    opacity: 1; }
-  .row_product_result .infinite-wrap .loading-container {
-    margin-bottom: 0.5em; }
-  @keyframes infinitePulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 1; } }
-  .row_product_result .infinite-wrap.infinite-process .infinite-loader {
-    animation: infinitePulse 1.5s ease-in-out infinite; }
   .row_product_result .infinite-wrap.infinite-end .infinite-loader {
     display: none; }
   .row_product_result .archive-header .page-title {
@@ -8006,9 +8016,5 @@ body.woocommerce-cart .is-small.wc-block-cart {
   .modal:not(.right) .modal-dialog .modal-content {
     margin: auto !important;
     height: fit-content !important; }
-
-/* Kill slick ajax-loader.gif request (missing from plugin path, causes 404). */
-.slick-loading .slick-list {
-  background-image: none !important; }
 
 /*# sourceMappingURL=style.css.map */

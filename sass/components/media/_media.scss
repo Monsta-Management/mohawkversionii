@@ -11,3 +11,29 @@
 .custom-logo-link {
 	display: inline-block;
 }
+
+/* Spinning image CSS start */
+@keyframes video-spin {
+	0% { transform: translate(-50%, -50%) rotate(0deg); }
+	100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.product-item-wrap .product-inner-img > a {
+	height: 100%;
+	left: 0;
+	object-fit: contain;
+	position: absolute;
+	top: 0;
+	width: 100%;
+}
+
+.product-item-wrap .product-inner-img video {
+	height: 100%;
+	left: 0;
+	object-fit: contain;
+	position: absolute;
+	top: 0;
+	transition: all 500000ms;
+	width: 100%;
+	z-index: 10;
+}
