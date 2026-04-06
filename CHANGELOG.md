@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.2.1-alpha] - 2026-04-06
+### Added
+- Smart featured products shortcode fallback:
+  - `[acf_featured_products]` now automatically falls back to default featured products when no ACF selection is set.
+  - unified logic ensures frontend always displays products without empty states.
+
+---
+
 ## [2.2.0-alpha] - 2026-04-02
 ### Improved
 - refactor product sort order:

@@ -102,7 +102,6 @@ function shortcode_featured_products() {
 	<?php
 	return ob_get_clean();
 }
-add_shortcode( 'uproar_featured_products', 'shortcode_featured_products' );
 
 /*
 ** Featured product via ACF - [acf_featured_products]
@@ -113,8 +112,9 @@ function shortcode_selected_featured_products() {
 	// Get selected product IDs from ACF (Global Options Page).
 	$acf_selected_products = get_field( 'featured_products_show', 'option' );
 
+	// Fallback to default if empty.
 	if ( empty( $acf_selected_products ) ) {
-		return '<p>No featured products selected.</p>';
+		return shortcode_featured_products();
 	}
 
 	$args = [
@@ -134,13 +134,31 @@ function shortcode_selected_featured_products() {
 			}
 		echo '</div>';
 	} else {
-		echo '<p>No products found.</p>';
+		// Extra safety! fallback if query fails.
+		return shortcode_featured_products();
 	}
 
 	wp_reset_postdata();
 	return ob_get_clean();
 }
 add_shortcode( 'acf_featured_products', 'shortcode_selected_featured_products' );
+
+/*
+** Smart featured products shortcode (auto switch).
+*/
+function shortcode_smart_featured_products() {
+
+	// Check if ACF-[acf_featured_products] has selected products.
+	$acf_selected_products = get_field( 'featured_products_show', 'option' );
+
+	if ( ! empty( $acf_selected_products ) ) {
+		return shortcode_selected_featured_products();
+	}
+
+	// Fallback to default featured products.
+	return shortcode_featured_products();
+}
+add_shortcode( 'uproar_featured_products', 'shortcode_smart_featured_products' );
 
 /**
  * Featured product categories - [featured_categories]
