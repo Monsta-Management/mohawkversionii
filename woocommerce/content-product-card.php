@@ -4,13 +4,6 @@ global $product;
 
 if ( ! $product ) return false;
 
-// Cache ACF option lookups — these return the same value for every product card
-// but were previously queried 24 times per page (once per card).
-static $bulk_pricing_from = null;
-if ( $bulk_pricing_from === null ) {
-	$bulk_pricing_from = get_field( 'bulk_pricing_from', 'option' );
-}
-
 // Get image.
 $thumb_url = false;
 $attachment_ids = $product->get_gallery_image_ids();
@@ -62,27 +55,20 @@ if ( $custompostmeta == 'trophymonsta' ) {
 	if ( $infocommunique == 'Yes' ) $badge = '<span class="prod-new item">NEW</span>';
 }
 
-// Bulk pricing 'from' price reference.
-$bulk_price = '';
+// BULK PRICING logic START.
+$bulk_data     = function_exists( 'monsta_uc_get_bulk_price_data' ) ? monsta_uc_get_bulk_price_data( $product ) : false; // reference to Monsta Unified Core plugin bulk pricing ACF feature.
+$regular_price = ( float ) $product->get_price(); // fallback product regular price.
 
-$regular_price = $product->get_price();
-
-// Mapping of tiers to discount percentages based on provided correct prices.
-$discount_rates = [
-	'tier1' => 0.00, // No discount
-	'tier2' => 0.08, // 8% discount
-	'tier3' => 0.12, // 12% discount
-	'tier4' => 0.15, // 15% discount (adjusted to match expected price)
-	'tier5' => 0.20, // 20% discount (adjusted to match expected price)
-	'tier6' => 0.25, // 25% discount (adjusted to match expected price)
-];
-
-// Determine the discount rate based on the selected tier.
-$discount_rate = $discount_rates[$bulk_pricing_from] ?? 0.00;
-
-// Calculate the bulk price.
-$bulk_price = $regular_price - ($regular_price * $discount_rate);
-$bulk_price = round($bulk_price, 2);
+if ( $bulk_data ) {
+	if ( $bulk_data['type'] === 'range' ) {
+		$price_display = wc_price( $bulk_data['min'] ) . ' - ' . wc_price( $bulk_data['max'] );
+	} else {
+		$price_display = wc_price( $bulk_data['price'] );
+	}
+} else {
+	$price_display = wc_price( $regular_price );
+}
+// BULK PRICING logic END.
 
 // SPINNING video/image display START.
 $trophymonsta_video = '';
@@ -173,14 +159,7 @@ if ( empty( $trophymonsta_image ) ) {
 			</div>
 			
 			<div class="product-price u-product-price u-pull-right">
-				<?php if ( $bulk_pricing_from == 'range' ) {
-					$lowest_price = $regular_price - ( $regular_price * 0.27 );
-					$highest_price = $regular_price;
-					?>
-					<span>from</span> <?=wc_price( $lowest_price );?> <span class="amount">-</span> <?=wc_price( $highest_price );?>
-				<?php } else { ?>
-					<span>from</span> <?=wc_price( $bulk_price );?>
-				<?php } ?>
+				<span>from</span> <?= $price_display; ?>
 			</div>
 
 			<?php if ( $variation_type == 'color' ) { ?>
@@ -199,7 +178,7 @@ if ( empty( $trophymonsta_image ) ) {
 								?>
 							</div>&nbsp;<?=$color_data[2];?> 
 							<div class="product-price u-product-price u-pull-right">
-								<span>from</span> <?=wc_price( $bulk_price );?>
+								<span>from</span> <?= $price_display; ?>
 							</div>
 						</li>
 					<?php } ?>

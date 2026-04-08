@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.2.2-alpha] - 2026-04-08
+### Added
+- hook `Monsta Unified Core` `ACF Bulk Pricing` feature on WooCommerce `content-product-card.php` override template.
+
+---
+
 ## [2.2.1-alpha] - 2026-04-06
 ### Added
 - Smart featured products shortcode fallback:
