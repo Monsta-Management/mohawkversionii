@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.2.3-alpha] - 2026-04-15
+### Changed
+- simplified product sorting logic to prioritize supplier clustering and NEW products.
+- ensured strict grouping of products by supplier (no more interleaving between suppliers).
+- maintained consistent ordering: supplier rank → NEW products → stable fallback.
+
+### Improved
+- improved reliability for sites without S3 data (graceful handling of missing meta).
+- more consistent ordering and better performance with reduced query complexity.
+
+### Performance
+- reduced query complexity by removing unnecessary ranking conditions.
+- retained transient caching to prevent repeated heavy database queries.
+
+---
+
 ## [2.2.2-alpha] - 2026-04-08
 ### Added
 - hook `Monsta Unified Core` `ACF Bulk Pricing` feature on WooCommerce `content-product-card.php` override template.

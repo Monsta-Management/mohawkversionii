@@ -423,69 +423,71 @@ function my_custom_checkout_field_update_order_meta( $order_id ) {
 add_action( 'woocommerce_checkout_update_order_meta', 'my_custom_checkout_field_update_order_meta' );
 
 //============= PRODUCT RANKING/SORTING START ========================//
-/**
- * Get cached sorted product IDs based on rank + NEW + video/image/local image priority
- */
 function get_cached_sorted_product_ids() {
 	$cache_key = 'trophymonsta_sorted_product_ids';
-
-	// Try cache first (12 hours)
 	$product_ids = get_transient( $cache_key );
+
 	if ( $product_ids !== false ) {
 		return $product_ids;
 	}
 
 	global $wpdb;
 
-	/*
-	PRIORITY WEIGHTS:
-	1. Rank → NEW + S3 Video OR NEW + S3 Image → 9
-	2. NEW + S3 Video OR NEW + Local Image → 8
-	3. NOT NEW + S3 Video OR NOT NEW + S3 Image → 7
-	4. NOT NEW + S3 Video OR NOT NEW + Local Image → 6
-	5. NEW + NO S3 Video + NEW + S3 Image → 5
-	6. NEW + NO S3 Video + NEW + Local Image → 4
-	7. NOT NEW + NO S3 Video + NOT NEW + S3 Image → 3
-	8. NOT NEW + NO S3 Video + NOT NEW + Local Image → 2
-	9. Others → 1
-	*/
-
 	$product_ids = $wpdb->get_col("
 		SELECT p.ID
-		FROM {$wpdb->prefix}posts AS p
-		LEFT JOIN {$wpdb->prefix}postmeta AS pm_rank       ON pm_rank.post_id = p.ID AND pm_rank.meta_key LIKE '%ranking%'
-		LEFT JOIN {$wpdb->prefix}postmeta AS pm_info_new   ON pm_info_new.post_id = p.ID AND pm_info_new.meta_key = '_trophymonsta_info_new'
-		LEFT JOIN {$wpdb->prefix}postmeta AS pm_video      ON pm_video.post_id = p.ID AND pm_video.meta_key = '_trophymonsta_valids3url'
-		LEFT JOIN {$wpdb->prefix}postmeta AS pm_s3_image   ON pm_s3_image.post_id = p.ID AND pm_s3_image.meta_key = '_trophymonsta_valids3image'
-		LEFT JOIN {$wpdb->prefix}postmeta AS pm_local_img  ON pm_local_img.post_id = p.ID AND pm_local_img.meta_key = '_trophymonsta_image'
-		WHERE p.post_type = 'product' AND p.post_status = 'publish'
+		FROM {$wpdb->prefix}posts p
+	
+		-- Supplier rank (lowest = highest priority)
+		LEFT JOIN (
+			SELECT 
+				tr.object_id,
+				MIN(CAST(tm.meta_value AS UNSIGNED)) AS supplier_rank
+			FROM {$wpdb->prefix}term_relationships tr
+			INNER JOIN {$wpdb->prefix}term_taxonomy tt 
+				ON tt.term_taxonomy_id = tr.term_taxonomy_id
+				AND tt.taxonomy = 'product_supplier'
+			INNER JOIN {$wpdb->prefix}termmeta tm 
+				ON tm.term_id = tt.term_id
+				AND tm.meta_key = 'ranking'
+			GROUP BY tr.object_id
+		) supplier ON supplier.object_id = p.ID
+	
+		-- Product NEW meta
+		LEFT JOIN {$wpdb->prefix}postmeta pm_new 
+			ON pm_new.post_id = p.ID AND pm_new.meta_key = '_trophymonsta_info_new'
+	
+		-- S3 URL meta
+		LEFT JOIN {$wpdb->prefix}postmeta pm_s3 
+			ON pm_s3.post_id = p.ID AND pm_s3.meta_key = '_trophymonsta_valids3url'
+	
+		WHERE p.post_type = 'product'
+		AND p.post_status = 'publish'
+	
 		ORDER BY
-			CAST(pm_rank.meta_value AS UNSIGNED) ASC,
-			CASE
-				WHEN pm_info_new.meta_value = 'Yes' AND pm_video.meta_value IS NOT NULL THEN 9
-				WHEN pm_info_new.meta_value = 'Yes' AND pm_s3_image.meta_value IS NOT NULL THEN 8
-				WHEN (pm_info_new.meta_value IS NULL OR pm_info_new.meta_value != 'Yes') AND pm_video.meta_value IS NOT NULL THEN 7
-				WHEN (pm_info_new.meta_value IS NULL OR pm_info_new.meta_value != 'Yes') AND pm_local_img.meta_value IS NOT NULL THEN 6
-				WHEN pm_info_new.meta_value = 'Yes' AND pm_video.meta_value IS NULL AND pm_s3_image.meta_value IS NOT NULL THEN 5
-				WHEN pm_info_new.meta_value = 'Yes' AND pm_video.meta_value IS NULL AND pm_local_img.meta_value IS NOT NULL THEN 4
-				WHEN (pm_info_new.meta_value IS NULL OR pm_info_new.meta_value != 'Yes') AND pm_video.meta_value IS NULL AND pm_s3_image.meta_value IS NOT NULL THEN 3
-				WHEN (pm_info_new.meta_value IS NULL OR pm_info_new.meta_value != 'Yes') AND pm_video.meta_value IS NULL AND pm_local_img.meta_value IS NOT NULL THEN 2
-				ELSE 1
-			END DESC,
+			-- 1. Any product with S3 URL comes first
+			CASE WHEN pm_s3.meta_value IS NOT NULL AND pm_s3.meta_value != '' THEN 0 ELSE 1 END ASC,
+	
+			-- 2. Cluster strictly by supplier
+			COALESCE(supplier.supplier_rank, 999) ASC,
+	
+			-- 3. NEW products first within each supplier
+			CASE WHEN pm_new.meta_value = 'Yes' THEN 1 ELSE 2 END ASC,
+	
+			-- 4. Stable fallback
 			p.ID ASC
 	");
 
-	set_transient( $cache_key, $product_ids, 12 * HOUR_IN_SECONDS ); // cache for 12 hours.
+	// Cache for 12 hours for performance.
+	set_transient( $cache_key, $product_ids, 12 * HOUR_IN_SECONDS );
 
 	return $product_ids;
 }
 
-/**
- * Hook into WooCommerce main query for shop/category pages
- */
+// Hook WooCommerce shop/category pages.
 function sort_woocommerce_products_by_rank_cached( $query ) {
 	if ( $query->is_main_query() && ( is_shop() || is_product_category() ) ) {
 		$product_ids = get_cached_sorted_product_ids();
+
 		if ( ! empty( $product_ids ) ) {
 			$query->set( 'post__in', $product_ids );
 			$query->set( 'orderby', 'post__in' );
@@ -494,9 +496,7 @@ function sort_woocommerce_products_by_rank_cached( $query ) {
 }
 add_action( 'pre_get_posts', 'sort_woocommerce_products_by_rank_cached', 99 );
 
-/**
- * Clear cached product IDs when product is updated
- */
+// Clear cache on product update/meta changes.
 function clear_sorted_product_cache( $post_id ) {
 	if ( get_post_type( $post_id ) === 'product' ) {
 		delete_transient( 'trophymonsta_sorted_product_ids' );
@@ -504,16 +504,13 @@ function clear_sorted_product_cache( $post_id ) {
 }
 add_action( 'save_post_product', 'clear_sorted_product_cache' );
 
-/**
- * Clear cache if relevant meta changes
- */
-function clear_sorted_product_cache_on_meta_update( $meta_id, $post_id, $meta_key, $meta_value ) {
+function clear_sorted_product_cache_on_meta_update( $meta_id, $post_id, $meta_key ) {
 	$relevant_keys = [
 		'_trophymonsta_info_new',
 		'_trophymonsta_valids3url',
 		'_trophymonsta_valids3image',
-		'_trophymonsta_image'
 	];
+
 	if ( get_post_type( $post_id ) === 'product' && in_array( $meta_key, $relevant_keys, true ) ) {
 		delete_transient( 'trophymonsta_sorted_product_ids' );
 	}
@@ -522,3 +519,24 @@ add_action( 'updated_postmeta', 'clear_sorted_product_cache_on_meta_update', 10,
 add_action( 'added_postmeta',   'clear_sorted_product_cache_on_meta_update', 10, 4 );
 add_action( 'deleted_postmeta', 'clear_sorted_product_cache_on_meta_update', 10, 4 );
 //============= PRODUCT RANKING/SORTING END ========================//
+
+/**
+ * Get the rank of a single product based on cached sorted IDs
+ *
+ * @param int $product_id
+ * @return int|null Rank number (1-based), or null if not found
+ */
+function get_product_rank( $product_id ) {
+	static $rank_map = null;
+
+	if ( $rank_map === null ) {
+		$sorted_ids = get_cached_sorted_product_ids();
+		$rank_map   = array_flip( $sorted_ids );
+	}
+
+	if ( isset( $rank_map[ $product_id ] ) ) {
+		return $rank_map[ $product_id ] + 1; // convert to 1-based rank.
+	}
+
+	return null;
+}
