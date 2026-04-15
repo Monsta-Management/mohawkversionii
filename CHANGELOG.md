@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.2.5-alpha] - 2026-04-15
+### Revert
+- revert `productsInfiniteResult()` ajax, it causes some performance bugs.
+
+---
+
 ## [2.2.4-alpha] - 2026-04-15
 ### Improved
 - mohawkversionii styles compability 1.
