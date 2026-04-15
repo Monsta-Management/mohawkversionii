@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.2.7-alpha] - 2026-04-15
+### Improved
+- optimize and improve product ranking.
+
+---
+
 ## [2.2.6-alpha] - 2026-04-15
 ### Fixed
 - fix `reset()` and WooCommerce legacy/deprecated functions.

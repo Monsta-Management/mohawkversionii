@@ -437,7 +437,9 @@ function get_cached_sorted_product_ids() {
 		SELECT p.ID
 		FROM {$wpdb->prefix}posts p
 	
-		-- Supplier rank (lowest = highest priority)
+		/* =========================
+		   SUPPLIER RANK (1 row per product)
+		========================= */
 		LEFT JOIN (
 			SELECT 
 				tr.object_id,
@@ -452,28 +454,63 @@ function get_cached_sorted_product_ids() {
 			GROUP BY tr.object_id
 		) supplier ON supplier.object_id = p.ID
 	
-		-- Product NEW meta
-		LEFT JOIN {$wpdb->prefix}postmeta pm_new 
-			ON pm_new.post_id = p.ID AND pm_new.meta_key = '_trophymonsta_info_new'
+		/* =========================
+		   POST META (AGGREGATED - FIXES DUPLICATES)
+		========================= */
+		LEFT JOIN (
+			SELECT 
+				post_id,
 	
-		-- S3 URL meta
-		LEFT JOIN {$wpdb->prefix}postmeta pm_s3 
-			ON pm_s3.post_id = p.ID AND pm_s3.meta_key = '_trophymonsta_valids3url'
+				MAX(CASE WHEN meta_key = '_trophymonsta_valids3url' THEN 1 ELSE 0 END) AS has_s3_video,
+				MAX(CASE WHEN meta_key = '_trophymonsta_valids3image' THEN 1 ELSE 0 END) AS has_s3_image,
+				MAX(CASE WHEN meta_key = '_trophymonsta_image' THEN 1 ELSE 0 END) AS has_local_image,
 	
+				MAX(CASE WHEN meta_key = '_trophymonsta_info_new' AND meta_value = 'Yes' THEN 1 ELSE 0 END) AS is_new
+	
+			FROM {$wpdb->prefix}postmeta
+			WHERE meta_key IN (
+				'_trophymonsta_valids3url',
+				'_trophymonsta_valids3image',
+				'_trophymonsta_image',
+				'_trophymonsta_info_new'
+			)
+			GROUP BY post_id
+		) meta ON meta.post_id = p.ID
+	
+		/* =========================
+		   BASE FILTER
+		========================= */
 		WHERE p.post_type = 'product'
 		AND p.post_status = 'publish'
 	
+		/* =========================
+		   FINAL ORDERING
+		========================= */
 		ORDER BY
-			-- 1. Any product with S3 URL comes first
-			CASE WHEN pm_s3.meta_value IS NOT NULL AND pm_s3.meta_value != '' THEN 0 ELSE 1 END ASC,
-	
-			-- 2. Cluster strictly by supplier
+
+			/* 1. Supplier grouping */
 			COALESCE(supplier.supplier_rank, 999) ASC,
-	
-			-- 3. NEW products first within each supplier
-			CASE WHEN pm_new.meta_value = 'Yes' THEN 1 ELSE 2 END ASC,
-	
-			-- 4. Stable fallback
+		
+			/* 2. S3 VIDEO FIRST (highest priority) */
+			CASE 
+				WHEN meta.has_s3_video = 1 THEN 0
+				WHEN meta.has_s3_image = 1 THEN 1
+				ELSE 2
+			END ASC,
+		
+			/* 3. Local image fallback */
+			CASE 
+				WHEN meta.has_local_image = 1 THEN 0
+				ELSE 1
+			END ASC,
+		
+			/* 4. NEW products */
+			CASE 
+				WHEN meta.is_new = 1 THEN 0
+				ELSE 1
+			END ASC,
+		
+			/* 5. Stable fallback */
 			p.ID ASC
 	");
 
@@ -503,6 +540,15 @@ function clear_sorted_product_cache( $post_id ) {
 	}
 }
 add_action( 'save_post_product', 'clear_sorted_product_cache' );
+
+function clear_sorted_product_cache_on_termmeta( $meta_id, $term_id, $meta_key ) {
+	if ( $meta_key === 'ranking' ) {
+		delete_transient( 'trophymonsta_sorted_product_ids' );
+	}
+}
+add_action( 'updated_termmeta', 'clear_sorted_product_cache_on_termmeta', 10, 3 );
+add_action( 'added_termmeta',   'clear_sorted_product_cache_on_termmeta', 10, 3 );
+add_action( 'deleted_termmeta', 'clear_sorted_product_cache_on_termmeta', 10, 3 );
 
 function clear_sorted_product_cache_on_meta_update( $meta_id, $post_id, $meta_key ) {
 	$relevant_keys = [
