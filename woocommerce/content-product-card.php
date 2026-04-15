@@ -5,25 +5,35 @@ global $product;
 if ( ! $product ) return false;
 
 // Get image.
-$thumb_url = false;
+$product_id     = $product->get_id();
+$thumb_url      = false;
 $attachment_ids = $product->get_gallery_image_ids();
-$image_items = product_image_vartiant( $product );
+$image_items    = product_image_vartiant( $product );
 
 // Featured image.
-if ( has_post_thumbnail( $product->id ) ) {
-	$thumb_id = get_post_thumbnail_id( $product->id );
-	$thumb_url = reset( wp_get_attachment_image_src( $thumb_id, 'large' ) );
+if ( has_post_thumbnail( $product_id ) ) {
+	$thumb_id = get_post_thumbnail_id( $product_id );
+	$image_data = wp_get_attachment_image_src( $thumb_id, 'large' );
+
+    if ( is_array( $image_data ) && ! empty( $image_data[0] ) ) {
+    	$thumb_url = $image_data[0];
+    }
 }
 
 // Gallery images.
 if ( empty( $thumb_url ) ) {
-	foreach( $attachment_ids as $attachment_id ) {
-		$thumb_url = wp_get_attachment_url( $attachment_id );
-	}
+	foreach ( $attachment_ids as $attachment_id ) {
+    	$url = wp_get_attachment_url( $attachment_id );
+
+    	if ( $url ) {
+    		$thumb_url = $url;
+    		break; // stop at first valid image.
+    	}
+    }
 }
 
 // Variant image.
-if ( empty( $thumb_url ) && ! empty( $image_items ) ) {
+if ( is_array( $image_items ) && ! empty( $image_items ) ) {
 	$thumb_url = reset( $image_items );
 }
 
@@ -44,14 +54,14 @@ $color_codes = [
 ];
 
 // Get the product supplier.
-$supplier = get_the_terms( $product->id, 'trophymonsta_brand', true );
+$supplier = get_the_terms( $product_id, 'trophymonsta_brand' );
 $supplier = empty( $supplier ) ? 'unknown' : $supplier[0]->name;
 
 // Add 'NEW' badge to newly added products.
 $badge = '';
-$custompostmeta = get_post_meta( $product->id, '_trophymonsta_text_field', true );
+$custompostmeta = get_post_meta( $product_id, '_trophymonsta_text_field', true );
 if ( $custompostmeta == 'trophymonsta' ) {
-	$infocommunique = get_post_meta( $product->id, '_trophymonsta_info_new', true );
+	$infocommunique = get_post_meta( $product_id, '_trophymonsta_info_new', true );
 	if ( $infocommunique == 'Yes' ) $badge = '<span class="prod-new item">NEW</span>';
 }
 
@@ -76,7 +86,7 @@ $trophymonsta_image = '';
 
 // NOTE: `trophymonsta_valids3url` and `_trophymonsta_valids3image` are temporary solution until EV validate their data first from Grr.
 if ( defined( 'TROPHYMONSTA_VALIDATOR_VERSION' ) ) {
-	$product_meta = get_post_meta( $product->get_id() );
+	$product_meta = get_post_meta( $product_id );
 
 	if ( ! empty( $product_meta['_trophymonsta_valids3url'][0] ) ) {
 		$trophymonsta_video = $product_meta['_trophymonsta_valids3url'][0];
@@ -91,9 +101,11 @@ if ( empty( $trophymonsta_image ) ) {
 	$trophymonsta_image = $thumb_url; // Fallback to local image if no validated S3 image.
 }
 // SPINNING video/image display END.
+
+$priority   = get_product_rank( $product_id );
 ?>
 
-<div class="col-sm-2 product-item-wrap">
+<div class="col-sm-2 product-item-wrap" data-new="<?=$infocommunique?>" supplier="<?=$supplier?>" data-rank="<?=$priority?>">
 	<div class="product-item product-card"
 		<?php if ( $trophymonsta_video ) :  // SPINNING video/image display START. ?>
 			data-video-url="<?php echo esc_url( $trophymonsta_video ); ?>"

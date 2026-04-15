@@ -241,176 +241,176 @@ if ( ! function_exists( 'mohawkversionii_woocommerce_header_cart' ) ) {
  * each needing variations for images, colours, and sizes).
  */
 function mohawk_get_cached_variations( $product ) {
-    static $cache = [];
-    $id = $product->get_id();
+	static $cache = [];
+	$id = $product->get_id();
 
-    if ( ! isset( $cache[ $id ] ) ) {
-        $cache[ $id ] = method_exists( $product, 'get_available_variations' )
-            ? $product->get_available_variations()
-            : false;
-    }
+	if ( ! isset( $cache[ $id ] ) ) {
+		$cache[ $id ] = method_exists( $product, 'get_available_variations' )
+			? $product->get_available_variations()
+			: false;
+	}
 
-    return $cache[ $id ];
+	return $cache[ $id ];
 }
 
 /**
  * Create image url attribute to size options.
  */
 function product_image_vartiant( $product ) {
-    $variations = mohawk_get_cached_variations( $product );
+	$variations = mohawk_get_cached_variations( $product );
 
-    if ( ! empty( $variations ) ) {
+	if ( ! empty( $variations ) ) {
 
-        $image_variation = [];
-        foreach ( $variations as $variation ) {
-            $image_variation[] = $variation['image']['url'];
-        }
-    }
-    return $image_variation;
+		$image_variation = [];
+		foreach ( $variations as $variation ) {
+			$image_variation[] = $variation['image']['url'];
+		}
+	}
+	return $image_variation;
 }
 
 /**
  * Create options for colors or size.
  */
 function product_colors_or_sizes( $product, $type = 'size' ) {
-    $variations = mohawk_get_cached_variations( $product );
-    $variation_type = 'size';
+	$variations = mohawk_get_cached_variations( $product );
+	$variation_type = 'size';
 
-    // Check product if medal.
-    $terms = get_the_terms( $product->id, 'product_cat' );
-    if ( ! empty( $terms ) ) {
-        foreach ( $terms as $term ) {
-            if ( $term->name == 'Medals' ) {
-                $variation_type = 'colors';
-                break;
-            }
-        }
-    }
-    
-    $color_items = [];
-    $size_items = [];
+	// Check product if medal.
+	$terms = get_the_terms( $product->get_id(), 'product_cat' );
+	if ( ! empty( $terms ) ) {
+		foreach ( $terms as $term ) {
+			if ( $term->name == 'Medals' ) {
+				$variation_type = 'colors';
+				break;
+			}
+		}
+	}
+	
+	$color_items = [];
+	$size_items = [];
 
-    // Sort variations by price for size options.
-    $the_variations = $variations;
+	// Sort variations by price for size options.
+	$the_variations = $variations;
 
-    if ( $variation_type != 'colors' ) {
-        $the_variations = [];
+	if ( $variation_type != 'colors' ) {
+		$the_variations = [];
 
-        if ( ! empty( $variations ) ) {
-            $extra_key = range( 'A', 'Z' );
-            $num = 0;
+		if ( ! empty( $variations ) ) {
+			$extra_key = range( 'A', 'Z' );
+			$num = 0;
 
-            foreach ( $variations as $variation ) {
-                $var_key = $variation['display_price'] . $extra_key[$num];
-                $the_variations[$var_key] = $variation;
-                $num++;
-            }
+			foreach ( $variations as $variation ) {
+				$var_key = $variation['display_price'] . $extra_key[$num];
+				$the_variations[$var_key] = $variation;
+				$num++;
+			}
 
-            ksort($the_variations);
-        }
-    }
+			ksort($the_variations);
+		}
+	}
 
-    if ( ! empty( $the_variations ) ) {
-        $color_wildcards = [
-            'svp' => 'Silver',
-            'bvp' => 'Bronze',
-            'gvp' => 'Gold',
-        ];
+	if ( ! empty( $the_variations ) ) {
+		$color_wildcards = [
+			'svp' => 'Silver',
+			'bvp' => 'Bronze',
+			'gvp' => 'Gold',
+		];
 
-        $color_inits = [
-            'G' => 'Gold',
-            'S' => 'Silver',
-            'B' => 'Bronze',
-            'BR' => 'Bronze',
-            'Y' => 'Yellow',
-        ];
-        
-        $size_labels = ['S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', '5XL', '6XL', '7XL', '8XL'];
+		$color_inits = [
+			'G' => 'Gold',
+			'S' => 'Silver',
+			'B' => 'Bronze',
+			'BR' => 'Bronze',
+			'Y' => 'Yellow',
+		];
+		
+		$size_labels = ['S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', '5XL', '6XL', '7XL', '8XL'];
 
-        foreach ( $the_variations as $variation ) {
+		foreach ( $the_variations as $variation ) {
 
-            $attrs = isset( $variation['attributes'] ) ? $variation['attributes'] : array();
-            $size_attr = $attrs['attribute_pa_monstasize'];
+			$attrs = isset( $variation['attributes'] ) ? $variation['attributes'] : array();
+			$size_attr = $attrs['attribute_pa_monstasize'];
 
-            // Check the size first.
-            if ( $variation_type == 'colors' ) {
+			// Check the size first.
+			if ( $variation_type == 'colors' ) {
 
-                $size_attr_items = explode( '-', $size_attr );
-                $colorKey = '';
-                $colorMatch = false;
+				$size_attr_items = explode( '-', $size_attr );
+				$colorKey = '';
+				$colorMatch = false;
 
-                // Check the SKU against the wildcard patterns.
-                foreach ( $color_wildcards as $pattern => $color ) {
-                    if ( stripos( $size_attr, $pattern ) !== false ) {
-                        $colorName = $color;
-                        $colorKey = array_search( $colorName, $color_inits );
-                        $colorMatch = true;
-                        break;
-                    }
-                }
+				// Check the SKU against the wildcard patterns.
+				foreach ( $color_wildcards as $pattern => $color ) {
+					if ( stripos( $size_attr, $pattern ) !== false ) {
+						$colorName = $color;
+						$colorKey = array_search( $colorName, $color_inits );
+						$colorMatch = true;
+						break;
+					}
+				}
 
-                // If no match found, fallback to checking the last letter of each segment.
-                if ( ! $colorMatch ) {
-                    foreach ( $size_attr_items as $size_attr_item ) {
-                        foreach ( $color_inits as $key => $val ) {
-                            $size_attr_item_last_letter = strtoupper( substr( $size_attr_item, -1 * strlen( $key ) ) );
-                            
-                            if ( ! empty( $color_inits[$size_attr_item_last_letter] ) && $size_attr_item_last_letter == $key ) {
-                                $colorKey = $key;
-                                $colorMatch = true;
-                                break;
-                            }
-                        }
-                    }
-                }
+				// If no match found, fallback to checking the last letter of each segment.
+				if ( ! $colorMatch ) {
+					foreach ( $size_attr_items as $size_attr_item ) {
+						foreach ( $color_inits as $key => $val ) {
+							$size_attr_item_last_letter = strtoupper( substr( $size_attr_item, -1 * strlen( $key ) ) );
+							
+							if ( ! empty( $color_inits[$size_attr_item_last_letter] ) && $size_attr_item_last_letter == $key ) {
+								$colorKey = $key;
+								$colorMatch = true;
+								break;
+							}
+						}
+					}
+				}
 
-                if ( ! empty( $colorKey ) ) {
-                    $colorName = $color_inits[$colorKey];
-                    $color_items[$size_attr] = $colorKey . '|' . $colorName . '|' . $size_attr . '|' . wc_price( $variation['display_price'] );
-                }
-            }
+				if ( ! empty( $colorKey ) ) {
+					$colorName = $color_inits[$colorKey];
+					$color_items[$size_attr] = $colorKey . '|' . $colorName . '|' . $size_attr . '|' . wc_price( $variation['display_price'] );
+				}
+			}
 
-            // If size or colors is empty.
-            if ( empty( $color_items ) || $variation_type == 'size' ) {
-                $size = explode( '-', $size_attr );
-                if ( ! empty( $size[count( $size ) - 1] ) ) {
-                    $size_val = $size[count( $size ) - 1];
-                    $size_val = strpos( $size_val, 'mm' ) !== false ? $size_val : $size_attr;
-                    $size_items[$size_val] = $size_val . '|' . wc_price( $variation['display_price'] ) . '|' . $size_attr;
-                    $variation_type = 'size';
-                }
-            }
-        }
+			// If size or colors is empty.
+			if ( empty( $color_items ) || $variation_type == 'size' ) {
+				$size = explode( '-', $size_attr );
+				if ( ! empty( $size[count( $size ) - 1] ) ) {
+					$size_val = $size[count( $size ) - 1];
+					$size_val = strpos( $size_val, 'mm' ) !== false ? $size_val : $size_attr;
+					$size_items[$size_val] = $size_val . '|' . wc_price( $variation['display_price'] ) . '|' . $size_attr;
+					$variation_type = 'size';
+				}
+			}
+		}
 
-        $color_items = array_unique( $color_items );
-        $size_items = array_unique( $size_items );
-        usort( $color_items, 'medal_color_sorting' );
-        ksort( $size_items );
-    }
+		$color_items = array_unique( $color_items );
+		$size_items = array_unique( $size_items );
+		usort( $color_items, 'medal_color_sorting' );
+		ksort( $size_items );
+	}
 
-    if ( $type == 'color' ) {
-        return $color_items;
-    } else {
-        return $size_items;
-    }
+	if ( $type == 'color' ) {
+		return $color_items;
+	} else {
+		return $size_items;
+	}
 }
 
 /**
  * Get product image variants by key.
  */
 function product_image_variants_by_key( $product ) {
-    $variations = mohawk_get_cached_variations( $product );
+	$variations = mohawk_get_cached_variations( $product );
 
-    if ( ! empty( $variations ) ) {
-        $image_variation = [];
-        $num = 0;
-        
-        foreach ( $variations as $variation ) {
-            $num++;
-            $variant_key = $variation['attributes']['attribute_pa_monstasize'] ?? $num;
-            $image_variation[$variant_key] = $variation['image']['url'];
-        }
-    }
-    
-    return $image_variation;
+	if ( ! empty( $variations ) ) {
+		$image_variation = [];
+		$num = 0;
+		
+		foreach ( $variations as $variation ) {
+			$num++;
+			$variant_key = $variation['attributes']['attribute_pa_monstasize'] ?? $num;
+			$image_variation[$variant_key] = $variation['image']['url'];
+		}
+	}
+	
+	return $image_variation;
 }

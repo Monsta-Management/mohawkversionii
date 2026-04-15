@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.2.6-alpha] - 2026-04-15
+### Fixed
+- fix `reset()` and WooCommerce legacy/deprecated functions.
+- optimize `mohawkversionii/inc/woocommerce.php` and `mohawkversionii/woocommerce/content-product-card.php`
+
+---
+
 ## [2.2.5-alpha] - 2026-04-15
 ### Revert
 - revert `productsInfiniteResult()` ajax, it causes some performance bugs.
