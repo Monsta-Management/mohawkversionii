@@ -4,7 +4,7 @@ Theme URI: https://www.monstamanagement.com/
 Author: MonstaManagement
 Author URI: https://www.monstamanagement.com/
 Description: Mohawk theme version 2.
-Version: 2.2.3-alpha
+Version: 2.2.4-alpha
 Tested up to: 5.4
 Requires PHP: 5.6
 License: GNU General Public License v2 or later
@@ -1524,10 +1524,11 @@ body.mobile_menu_open nav#mobile-navigation {
         display: inline-block;
         font-size: 14px;
         font-weight: 500;
-        letter-spacing: 0.0125rem;
+        letter-spacing: 0.025rem;
         line-height: 1.5;
         padding: 10px 35px;
         position: relative;
+        text-shadow: none;
         text-transform: uppercase;
         top: 0;
         box-shadow: none;
@@ -1946,61 +1947,52 @@ body {
   body .product-card:hover .hover-spin.video-ready {
     opacity: 1;
     z-index: 98; }
+  body .btn-category {
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0 5px;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    margin-bottom: 10px; }
+    body .btn-category:visited {
+      color: var(--primary-color); }
+    body .btn-category:hover, body .btn-category:focus, body .btn-category:active {
+      color: var(--secondary-color); }
   body .grecaptcha-badge {
     z-index: 999; }
 
 #with-sidebar {
-  position: relative;
-  transition: opacity 0.5s ease; }
-  #with-sidebar #loader-dom {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border: 16px solid #f3f3f3;
-    border-top: 16px solid var(--primary-color);
-    border-radius: 50%;
-    width: 120px;
-    height: 120px;
-    animation: spin 2s linear infinite;
-    z-index: 9999; }
-  #with-sidebar .sidebar {
-    float: left;
-    max-width: 420px;
+  display: flex;
+  align-items: flex-start;
+  position: relative; }
+  @media only screen and (max-width: 1024px) {
+    #with-sidebar {
+      flex-direction: column; } }
+  #with-sidebar .sidebar-fix {
     padding-bottom: 3rem;
-    position: absolute;
-    top: 0;
+    position: sticky;
+    top: calc(200px + var(--wp-admin--admin-bar--height, 0px));
     width: 25%;
     overflow-y: auto;
-    transition: top 0.3s ease; }
+    transition: top 0.3s ease;
+    align-self: flex-start; }
     @media only screen and (max-width: 1024px) {
-      #with-sidebar .sidebar {
+      #with-sidebar .sidebar-fix {
         max-width: 100%;
         padding-bottom: 0;
         position: relative;
+        top: 0 !important;
         width: 100%; } }
-    #with-sidebar .sidebar.sticky {
-      position: fixed;
-      top: 0;
-      transition: top 0.3s ease;
-      z-index: 9; }
-      @media only screen and (max-width: 1024px) {
-        #with-sidebar .sidebar.sticky {
-          position: initial !important; } }
-    #with-sidebar .sidebar.default-style {
-      position: initial !important; }
-      #with-sidebar .sidebar.default-style > .cat_list {
-        height: 100% !important; }
   #with-sidebar .content {
-    float: right;
-    margin-left: 25%;
+    flex: 1;
+    min-width: 0;
     width: 75%; }
     @media only screen and (max-width: 1024px) {
       #with-sidebar .content {
-        margin-left: 0;
         width: 100%; } }
-    #with-sidebar .content.default-style {
-      margin-left: 0 !important; }
   #with-sidebar .toggle_cats {
     color: #ffffff;
     background-color: var(--primary-color);
@@ -2025,9 +2017,8 @@ body {
       #with-sidebar .toggle_cats {
         display: none; } }
   #with-sidebar .cat_list {
-    height: 88vh;
     overflow-y: auto;
-    margin-right: 30px; }
+    margin-right: 40px; }
     @media screen and (min-width: 1024px) {
       #with-sidebar .cat_list {
         display: block !important; } }
@@ -2038,6 +2029,7 @@ body {
         margin-right: 0;
         display: none; } }
     #with-sidebar .cat_list ul {
+      background-color: #eee;
       list-style: none;
       margin: 0;
       padding: 0; }
@@ -2059,12 +2051,17 @@ body {
           #with-sidebar .cat_list ul li a {
             font-size: 18px; } }
         #with-sidebar .cat_list ul li a i {
+          display: flex;
           position: absolute;
-          right: 20px;
-          top: 50%;
-          color: #888888;
+          right: 0;
+          top: 0;
+          color: var(--primary-color);
           font-size: 12px;
-          margin-top: -5px; }
+          margin-top: 0;
+          height: 100%;
+          width: 50px;
+          align-items: center;
+          justify-content: center; }
           #with-sidebar .cat_list ul li a i.fa-chevron-up {
             display: none; }
       #with-sidebar .cat_list ul li.active a {
@@ -2075,17 +2072,22 @@ body {
           background: none;
           border: none;
           font-size: 16px;
-          color: #888888; }
+          color: var(--primary-color);
+          font-weight: 500; }
           #with-sidebar .cat_list ul li ul.children li a:hover {
             color: var(--primary-color); }
           @media screen and (max-width: 1200px) {
             #with-sidebar .cat_list ul li ul.children li a {
               font-size: 14px; } }
+      #with-sidebar .cat_list ul li.open > a > .fa-chevron-down {
+        transform: rotate(180deg);
+        transition: transform 0.3s ease; }
       #with-sidebar .cat_list ul.active > li > a {
         background-color: #f8f8f8;
         border-left: solid 2px var(--primary-color); }
         #with-sidebar .cat_list ul.active > li > a i.fa-chevron-down {
-          display: none; }
+          color: #fff;
+          transform: rotate(180deg); }
         #with-sidebar .cat_list ul.active > li > a i.fa-chevron-up {
           display: inline; }
       #with-sidebar .cat_list ul.active > li ul.children {
@@ -5427,7 +5429,7 @@ table.shop_table_responsive tr td {
         margin-top: auto;
         max-height: 100%;
         background: url("images/broken-image-placeholder.png") no-repeat center center;
-        background-size: 80px auto;
+        background-size: 60px auto;
         font-size: 0; }
         .row-products .product-item .product-inner .product-inner-img img.lazyloading {
           background: linear-gradient(90deg, #f4f4f4 25%, #eaeaea 50%, #f4f4f4 75%);
@@ -7792,6 +7794,8 @@ body.woocommerce-cart .is-small.wc-block-cart {
 .widget_price_filter .ui-slider-horizontal .ui-slider-range {
   height: 100%; }
 
+.mini-cart-widget.woocommerce {
+  margin-top: 0; }
 .mini-cart-widget .modal.left .modal-dialog,
 .mini-cart-widget .modal.right .modal-dialog {
   position: fixed;

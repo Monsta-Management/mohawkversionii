@@ -64,7 +64,11 @@
 	}
 }
 
-.mini-cart-widget{
+.mini-cart-widget {
+
+	&.woocommerce {
+		margin-top: 0;
+	}
     
     .modal.left .modal-dialog,
 	.modal.right .modal-dialog {

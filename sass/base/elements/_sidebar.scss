@@ -1,70 +1,37 @@
 #with-sidebar {
+    display: flex;
+    align-items: flex-start;
     position: relative;
-    transition: opacity 0.5s ease;
 
-    #loader-dom {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        border: 16px solid #f3f3f3;
-        border-top: 16px solid var(--primary-color);
-        border-radius: 50%;
-        width: 120px;
-        height: 120px;
-        animation: spin 2s linear infinite;
-        z-index: 9999;
+    @media only screen and (max-width: 1024px) {
+        flex-direction: column;
     }
 
-    .sidebar {
-        float: left;
-        max-width: 420px;
+    .sidebar-fix {
         padding-bottom: 3rem;
-        position: absolute;
-        top: 0;
+        position: sticky;
+        top: calc(200px + var(--wp-admin--admin-bar--height, 0px));
         width: 25%;
         overflow-y: auto;
         transition: top 0.3s ease;
+        align-self: flex-start;
 
         @media only screen and (max-width: 1024px) {
             max-width: 100%;
             padding-bottom: 0;
             position: relative;
+            top: 0 ! important;
             width: 100%;
-        }
-
-        &.sticky {
-            position: fixed;
-            top: 0;
-            transition: top 0.3s ease;
-            z-index: 9;
-
-            @media only screen and (max-width: 1024px) {
-                position: initial !important;
-            }
-        }
-
-        &.default-style {
-            position: initial !important;
-
-            & > .cat_list {
-                height: 100% !important;
-            }
         }
     }
 
     .content {
-        float: right;
-        margin-left: 25%;
+        flex: 1;
+        min-width: 0;
         width: 75%;
 
         @media only screen and (max-width: 1024px) {
-            margin-left: 0;
             width: 100%;
-        }
-
-        &.default-style {
-            margin-left: 0 !important;
         }
     }
 
@@ -99,9 +66,8 @@
     }
 
     .cat_list {
-        height: 88vh;
         overflow-y: auto;
-        margin-right: 30px;
+        margin-right: 40px;
 
         @media screen and (min-width: 1024px) {
             display: block !important;
@@ -115,6 +81,7 @@
         }
 
         ul {
+            background-color: #eee;
             list-style: none;
             margin: 0;
             padding: 0;
@@ -142,12 +109,17 @@
                     }
 
                     i {
+                        display: flex;
                         position: absolute;
-                        right: 20px;
-                        top: 50%;
-                        color: #888888;
+                        right: 0;
+                        top: 0;
+                        color: var(--primary-color);
                         font-size: 12px;
-                        margin-top: -5px;
+                        margin-top: 0;
+                        height: 100%;
+                        width: 50px;
+                        align-items: center;
+                        justify-content: center;
 
                         &.fa-chevron-up {
                             display: none;
@@ -171,7 +143,8 @@
                             background: none;
                             border: none;
                             font-size: 16px;
-                            color: #888888;
+                            color: var(--primary-color);
+                            font-weight: 500;
 
                             &:hover {
                                 color: var(--primary-color);
@@ -182,6 +155,11 @@
                             }
                         }
                     }
+                }
+
+                &.open > a > .fa-chevron-down {
+                    transform: rotate(180deg);
+                    transition: transform 0.3s ease;
                 }
             }
 
@@ -194,7 +172,8 @@
 
                         i {
                             &.fa-chevron-down {
-                                display: none;
+                                color: #fff;
+                                transform: rotate(180deg);
                             }
 
                             &.fa-chevron-up {

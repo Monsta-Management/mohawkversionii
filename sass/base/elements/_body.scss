@@ -235,6 +235,28 @@ body {
         }
     }
 
+    .btn-category {
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0 5px;
+        font-size: 1rem;
+        font-weight: 500;
+        line-height: 1.5;
+        margin-bottom: 10px;
+
+        &:visited {
+            color: var(--primary-color);
+        }
+
+        &:hover,
+        &:focus,
+        &:active {
+            color: var(--secondary-color);
+        }
+    }
+
     .grecaptcha-badge {
         z-index: 999;
     }

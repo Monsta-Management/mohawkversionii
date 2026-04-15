@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.2.4-alpha] - 2026-04-15
+### Improved
+- mohawkversionii styles compability 1.
+
+---
+
 ## [2.2.3-alpha] - 2026-04-15
 ### Changed
 - simplified product sorting logic to prioritize supplier clustering and NEW products.
