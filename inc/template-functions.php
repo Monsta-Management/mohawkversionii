@@ -550,7 +550,11 @@ add_action( 'updated_termmeta', 'clear_sorted_product_cache_on_termmeta', 10, 3 
 add_action( 'added_termmeta',   'clear_sorted_product_cache_on_termmeta', 10, 3 );
 add_action( 'deleted_termmeta', 'clear_sorted_product_cache_on_termmeta', 10, 3 );
 
-function clear_sorted_product_cache_on_meta_update( $meta_id, $post_id, $meta_key ) {
+function clear_sorted_product_cache_on_meta_update( $meta_id = null, $post_id = null, $meta_key = null ) {
+	if ( ! $post_id || ! $meta_key ) { // bail out early if missing required data.
+		return;
+	}
+
 	$relevant_keys = [
 		'_trophymonsta_info_new',
 		'_trophymonsta_valids3url',
@@ -561,9 +565,9 @@ function clear_sorted_product_cache_on_meta_update( $meta_id, $post_id, $meta_ke
 		delete_transient( 'trophymonsta_sorted_product_ids' );
 	}
 }
-add_action( 'updated_postmeta', 'clear_sorted_product_cache_on_meta_update', 10, 4 );
-add_action( 'added_postmeta',   'clear_sorted_product_cache_on_meta_update', 10, 4 );
-add_action( 'deleted_postmeta', 'clear_sorted_product_cache_on_meta_update', 10, 4 );
+add_action( 'updated_postmeta', 'clear_sorted_product_cache_on_meta_update', 10, 3 );
+add_action( 'added_postmeta',   'clear_sorted_product_cache_on_meta_update', 10, 3 );
+add_action( 'deleted_postmeta', 'clear_sorted_product_cache_on_meta_update', 10, 3 );
 //============= PRODUCT RANKING/SORTING END ========================//
 
 /**

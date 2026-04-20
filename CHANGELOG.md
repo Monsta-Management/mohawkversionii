@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.2.10-alpha] - 2026-04-20
+### Fixed
+- Resolved PHP fatal error when saving WordPress menus caused by incorrect argument handling in `clear_sorted_product_cache_on_meta_update()`.
+- Prevented crashes from `deleted_postmeta` hook when fewer arguments are passed than expected.
+
+---
+
 ## [2.2.9-alpha] - 2026-04-20
 ### Fixed
 - implement `[custom_gallery]` lightbox.
