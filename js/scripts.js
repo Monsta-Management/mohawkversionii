@@ -395,6 +395,13 @@
 		});
 	}
 
+	function makeGalleryLightbox() {
+		$( '#monsta-gallery .monsta-gallery--item > a' ).each( function() {
+			$( this ).attr( 'data-lightbox', 'gallery' );
+			$( this ).removeAttr( 'target' );
+		} );
+	}
+
 	// Spinning image on HOVER start //
 	function shouldInitHoverVideo() {
 		return document.querySelector('.product-item-wrap .product-card[data-video-url]');
@@ -536,6 +543,7 @@
 		checkoutColMerged();
 		changeFilterText();
 		testimonialSliderInit();
+		makeGalleryLightbox();
 
 		// Spinning image on HOVER
 		if (shouldInitHoverVideo()) {

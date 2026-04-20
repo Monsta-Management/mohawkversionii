@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.2.9-alpha] - 2026-04-20
+### Fixed
+- implement `[custom_gallery]` lightbox.
+
+---
+
 ## [2.2.8-alpha] - 2026-04-20
 ### Added
 - implement `[custom_catalogues]` and `[custom_gallery]` shortcodes.
