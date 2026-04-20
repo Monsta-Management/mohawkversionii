@@ -415,6 +415,86 @@ function shortcode_testimonial_slider() {
 add_shortcode( 'testimonial_slider', 'shortcode_testimonial_slider' );
 
 /*
+** Shortcode for catalogues - [custom_catalogues]
+*/
+function shortcode_custom_catalogues() {
+	ob_start();
+
+	// check if the repeater field has rows of data.
+	if( have_rows( 'catalogue_group' , 'option' ) ):
+		while ( have_rows( 'catalogue_group', 'option' ) ) : the_row();
+
+			echo '<div class="monsta-catalogue">';
+				
+				$the_heading = get_sub_field( 'heading' );
+
+				echo '<h2>'.$the_heading.'</h2>';
+				echo '<div class="monsta-catalogue--row">';
+
+					if( have_rows( 'catalogue_list' , 'option' ) ):
+						while ( have_rows( 'catalogue_list', 'option' ) ) : the_row();
+							$catalogue_title 	 = get_sub_field( 'catalogue_title' );
+							$catalogue_link 	 = get_sub_field( 'catalogue_link' );
+							$catalogue_image 	 = get_sub_field( 'catalogue_image' );
+							$catalogue_image_alt = basename( $catalogue_image );
+
+							echo '<div class="monsta-catalogue--col">';
+								echo '<div class="monsta-catalogue--image">';
+									echo "<a href='{$catalogue_link}' target='_blank'>";
+										echo "<img src='{$catalogue_image}' alt='{$catalogue_image_alt}'>";
+									echo "</a>";
+								echo '</div>';
+								echo "<h4><a href='{$catalogue_link}'>{$catalogue_title}</a></h3>";
+							echo '</div>';
+						endwhile;
+					endif;
+
+				echo '</div>';
+			echo '</div>';
+
+		endwhile;
+	endif;
+
+	return ob_get_clean();
+}
+add_shortcode( 'custom_catalogues', 'shortcode_custom_catalogues' );
+
+/*
+** Shortcode for gallery - [custom_gallery]
+*/
+function shortcode_custom_gallery() {
+	ob_start();
+
+	$gallery_images = get_field( 'gallery_lists', 'option' );
+
+	if( $gallery_images ):
+
+		echo '<div id="monsta-gallery" class="monsta-gallery">';
+		echo '<div class="monsta-gallery--row">';
+
+		foreach( $gallery_images as $image ):
+			$img_url = $image['url'];
+			$img_alt = !empty( $image['alt'] ) ? $image['alt'] : basename( $img_url );
+
+			echo '<div class="monsta-gallery--col">';
+				echo '<div class="monsta-gallery--item">';
+					echo "<a href='{$img_url}' target='_blank'>";
+						echo "<img src='{$img_url}' alt='{$img_alt}'>";
+					echo "</a>";
+				echo '</div>';
+			echo '</div>';
+		endforeach;
+
+		echo '</div>';
+		echo '</div>';
+
+	endif;
+
+	return ob_get_clean();
+}
+add_shortcode( 'custom_gallery', 'shortcode_custom_gallery' );
+
+/*
 ** Chortcode woocommerce mini-cart - [custom-mini-cart]
 */
 function custom_mini_cart() {
