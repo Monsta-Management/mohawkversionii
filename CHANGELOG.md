@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.2.11-alpha] - 2026-04-27
+### Fixed
+- fix flagged `BUG 1` and `BUG 2` with George
+  - BUG 1 — template-parts/subcategories-order.php (lines 41–42)
+  - BUG 2 — inc/accessories.php (line 46)
+
+---
+
 ## [2.2.10-alpha] - 2026-04-20
 ### Fixed
 - Resolved PHP fatal error when saving WordPress menus caused by incorrect argument handling in `clear_sorted_product_cache_on_meta_update()`.

@@ -40,14 +40,18 @@ function injectVariants_alt() {
 
         echo '<script>var global_variations = {}; </script>';
 
-        if(!empty($accessoriesList)){
-            foreach($accessoriesList as $accessoriesItemKey => $accessoriesItemName){
+        if( !empty( $accessoriesList ) ) {
+            foreach( $accessoriesList as $accessoriesItemKey => $accessoriesItemName ) {
                 // the accessories optionts with name, image and price
-                $accessoriesItemOptions = $accessoriesOptions[$accessoriesItemKey];
+                $accessoriesItemOptions = $accessoriesOptions[$accessoriesItemKey] ?? [];
+                
+                if ( empty( $accessoriesItemOptions ) ) {
+                    continue; // no options configured for this accessory — don't emit empty JS
+                }
 
                 // Variable to use by js function variantRenderModal(monstacc, centre_modal, button_text, global_var)
-                $global_var = "global_".$accessoriesItemKey;
-                $modal_var = $accessoriesItemKey."_modal";
+                $global_var = "global_" . $accessoriesItemKey;
+                $modal_var  = $accessoriesItemKey . "_modal";
 
                 echo "<script>
                 var ".$global_var." = JSON.parse('" . json_encode($accessoriesItemOptions) . "'); 

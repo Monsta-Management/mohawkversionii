@@ -9,7 +9,7 @@
 
 if ( ! defined( 'MOHAWK_VERSION' ) ) {
 	// Replace the version number of the theme on each release.
-	define( 'MOHAWK_VERSION', '2.2.10-alpha' );
+	define( 'MOHAWK_VERSION', '2.2.11-alpha' );
 }
 
 /**
