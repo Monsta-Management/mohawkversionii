@@ -302,72 +302,70 @@ add_shortcode( 'featured_categories', 'shortcode_featured_categories' );
 */
 function shortcode_related_products() {
 	ob_start();
-	global $woocommerce, $product;
 
-	$product_cat = wp_get_post_terms(
-		get_the_id(),
-		'product_cat',
-		[
-			'fields' => 'ids'    
-		]
-	);
-
-	// Related products are found from category.
-	$cats_array = [];
-	$terms = wp_get_post_terms( $product->id, 'product_cat' );
-
-	for ( $i = count( $terms )-1; $i >= 0; $i-- ) {
-		if ( $terms[$i]->count > 1 ) {
-			$term = $terms[$i];
-			break;
-		}
+	if ( ! function_exists( 'wc_get_product' ) ) {
+		return ob_get_clean();
 	}
 
-	if ( sizeof( $terms ) == 0 ) return false;
+	global $product;
 
-   	$cats_array = $product_cat[0];
+	if ( ! $product || ! is_a( $product, 'WC_Product' ) ) {
+		return ob_get_clean();
+	}
 
-	$meta_query = array();
-	$meta_query[] = $woocommerce->query->visibility_meta_query();
-	$meta_query[] = $woocommerce->query->stock_status_meta_query();
+	// Get product categories safely.
+	$category_ids = $product->get_category_ids();
+
+	if ( empty( $category_ids ) ) {
+		return ob_get_clean();
+	}
+
+	$meta_query   = WC()->query->get_meta_query();
+	$tax_query    = WC()->query->get_tax_query();
 
 	$limit = 6;
 
-	$result = new WP_Query(
-		[
-			'orderby'       => 'rand',
-			'posts_per_page'=> $limit,
-			'post_type'     => 'product',
-			'meta_query'    => $meta_query,
-			'post__not_in'  => array( $product->get_id() ),
-			'tax_query'     => [
+	$result = new WP_Query([
+		'orderby'        => 'rand',
+		'posts_per_page' => $limit,
+		'post_type'      => 'product',
+		'meta_query'     => $meta_query,
+		'tax_query'      => [
+			array_merge(
 				[
-					'taxonomy'  => 'product_cat',
-					'field'     => 'term_id',
-					'operator'  => 'IN',
-					'terms'     => [$term->term_id]    
-				]    
-			],    
-		]    
-	);
+					'taxonomy' => 'product_cat',
+					'field'    => 'term_id',
+					'terms'    => $category_ids,
+					'operator' => 'IN',
+				],
+				$tax_query ? $tax_query : []
+			),
+		],
+		'post__not_in'   => [ $product->get_id() ],
+	]);
+
 	?>
-	
-	<?php if (  $result->have_posts() ) { ?>
+
+	<?php if ( $result->have_posts() ) : ?>
 		<div class="related-wrap">
 			<div class="related-inner">
 				<h2>Related products</h2>
+
 				<div class="related-app2 row-products">
-					<?php 
-						while( $result->have_posts() ):  $result->the_post();
-							wc_get_template_part( 'content', 'product-card' );
-						endwhile;
-						
-						wp_reset_postdata();
+					<?php
+					while ( $result->have_posts() ) :
+						$result->the_post();
+						wc_get_template_part( 'content', 'product-card' );
+					endwhile;
+
+					wp_reset_postdata();
 					?>
 				</div>
+
 			</div>
 		</div>
-	<?php } ?>
+	<?php endif; ?>
+
 	<?php
 
 	return ob_get_clean();

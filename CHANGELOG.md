@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.2.12-alpha] - 2026-05-11
+### Fixed
+- fixed PHP warning caused by undefined `$term` variable on `[show_related_product]` shorcode.
+- removed unsafe manual term loop logic.
+- replaced deprecated `$product->id` usage with `$product->get_id()`.
+
+---
+
 ## [2.2.11-alpha] - 2026-04-27
 ### Fixed
 - fix flagged `BUG 1` and `BUG 2` with George
