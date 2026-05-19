@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.3.1] - 2026-05-19
+### Added
+- Added product-level STAR RANKING prioritization system.
+- Added support for scheduled featured ranking periods using:
+  - `_trophymonsta_star_ranking`
+  - `_trophymonsta_start_date`
+  - `_trophymonsta_end_date`
+- Added active date-range validation for temporary ranking campaigns.
+- Added automatic prioritization of active ranked products above supplier/media sorting.
+- Added fallback-safe ranking behavior when start/end dates are empty.
+- Added transient-aware STAR RANKING integration into cached WooCommerce product sorting.
+
+---
+
 ## [2.3.0] - 2026-05-19
 ### Changed
 - Final production fixes from RC testing.

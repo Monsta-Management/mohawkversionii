@@ -436,37 +436,78 @@ function get_cached_sorted_product_ids() {
 	$product_ids = $wpdb->get_col("
 		SELECT p.ID
 		FROM {$wpdb->prefix}posts p
-	
-		/* =========================
-		   SUPPLIER RANK (1 row per product)
+		
+			/* =========================
+			STAR RANKING (ACTIVE ONLY)
 		========================= */
 		LEFT JOIN (
 			SELECT 
-				tr.object_id,
-				MIN(CAST(tm.meta_value AS UNSIGNED)) AS supplier_rank
+			post_id,
+			
+			MAX(
+				CASE
+					WHEN meta_key = '_trophymonsta_star_ranking'
+					THEN CAST(meta_value AS UNSIGNED)
+					ELSE 0
+				END
+			) AS star_rank,
+			
+			MAX(
+				CASE
+					WHEN meta_key = '_trophymonsta_start_date'
+					THEN meta_value
+				END
+			) AS start_date,
+			
+			MAX(
+				CASE
+					WHEN meta_key = '_trophymonsta_end_date'
+					THEN meta_value
+				END
+			) AS end_date
+			
+			FROM {$wpdb->prefix}postmeta
+			
+			WHERE meta_key IN (
+				'_trophymonsta_star_ranking',
+				'_trophymonsta_start_date',
+				'_trophymonsta_end_date'
+			)
+			
+			GROUP BY post_id
+		
+		) star ON star.post_id = p.ID
+		
+		/* =========================
+			SUPPLIER RANK (1 row per product)
+		========================= */
+		LEFT JOIN (
+			SELECT 
+			tr.object_id,
+			MIN(CAST(tm.meta_value AS UNSIGNED)) AS supplier_rank
 			FROM {$wpdb->prefix}term_relationships tr
 			INNER JOIN {$wpdb->prefix}term_taxonomy tt 
-				ON tt.term_taxonomy_id = tr.term_taxonomy_id
-				AND tt.taxonomy = 'product_supplier'
+			ON tt.term_taxonomy_id = tr.term_taxonomy_id
+			AND tt.taxonomy = 'product_supplier'
 			INNER JOIN {$wpdb->prefix}termmeta tm 
-				ON tm.term_id = tt.term_id
-				AND tm.meta_key = 'ranking'
+			ON tm.term_id = tt.term_id
+			AND tm.meta_key = 'ranking'
 			GROUP BY tr.object_id
 		) supplier ON supplier.object_id = p.ID
-	
+		
 		/* =========================
-		   POST META (AGGREGATED - FIXES DUPLICATES)
+			POST META (AGGREGATED - FIXES DUPLICATES)
 		========================= */
 		LEFT JOIN (
 			SELECT 
-				post_id,
-	
-				MAX(CASE WHEN meta_key = '_trophymonsta_valids3url' THEN 1 ELSE 0 END) AS has_s3_video,
-				MAX(CASE WHEN meta_key = '_trophymonsta_valids3image' THEN 1 ELSE 0 END) AS has_s3_image,
-				MAX(CASE WHEN meta_key = '_trophymonsta_image' THEN 1 ELSE 0 END) AS has_local_image,
-	
-				MAX(CASE WHEN meta_key = '_trophymonsta_info_new' AND meta_value = 'Yes' THEN 1 ELSE 0 END) AS is_new
-	
+			post_id,
+			
+			MAX(CASE WHEN meta_key = '_trophymonsta_valids3url' THEN 1 ELSE 0 END) AS has_s3_video,
+			MAX(CASE WHEN meta_key = '_trophymonsta_valids3image' THEN 1 ELSE 0 END) AS has_s3_image,
+			MAX(CASE WHEN meta_key = '_trophymonsta_image' THEN 1 ELSE 0 END) AS has_local_image,
+			
+			MAX(CASE WHEN meta_key = '_trophymonsta_info_new' AND meta_value = 'Yes' THEN 1 ELSE 0 END) AS is_new
+			
 			FROM {$wpdb->prefix}postmeta
 			WHERE meta_key IN (
 				'_trophymonsta_valids3url',
@@ -476,43 +517,91 @@ function get_cached_sorted_product_ids() {
 			)
 			GROUP BY post_id
 		) meta ON meta.post_id = p.ID
-	
+		
 		/* =========================
-		   BASE FILTER
+			BASE FILTER
 		========================= */
 		WHERE p.post_type = 'product'
 		AND p.post_status = 'publish'
-	
+		
 		/* =========================
-		   FINAL ORDERING
+			FINAL ORDERING
 		========================= */
 		ORDER BY
 
-			/* 1. Supplier grouping */
-			COALESCE(supplier.supplier_rank, 999) ASC,
-		
-			/* 2. S3 VIDEO FIRST (highest priority) */
-			CASE 
+				/* =========================
+				1. ACTIVE STAR RANKING
+				========================= */
+				CASE
+					WHEN
+					star.star_rank > 0
+					AND (
+					star.start_date IS NULL
+					OR star.start_date = ''
+					OR star.start_date <= NOW()
+					)
+					AND (
+					star.end_date IS NULL
+					OR star.end_date = ''
+					OR star.end_date >= NOW()
+					)
+					THEN 0
+					ELSE 1
+				END ASC,
+			
+				/* Higher star rank first */
+				CASE
+					WHEN
+					star.star_rank > 0
+					AND (
+					star.start_date IS NULL
+					OR star.start_date = ''
+					OR star.start_date <= NOW()
+					)
+					AND (
+					star.end_date IS NULL
+					OR star.end_date = ''
+					OR star.end_date >= NOW()
+					)
+					THEN star.star_rank
+					ELSE 999
+				END ASC,
+			
+				/* =========================
+				2. SUPPLIER RANK
+				========================= */
+				COALESCE(supplier.supplier_rank, 999) ASC,
+			
+				/* =========================
+				3. MEDIA PRIORITY
+				========================= */
+				CASE 
 				WHEN meta.has_s3_video = 1 THEN 0
 				WHEN meta.has_s3_image = 1 THEN 1
 				ELSE 2
-			END ASC,
-		
-			/* 3. Local image fallback */
-			CASE 
+				END ASC,
+			
+				/* =========================
+				4. LOCAL IMAGE
+				========================= */
+				CASE 
 				WHEN meta.has_local_image = 1 THEN 0
 				ELSE 1
-			END ASC,
-		
-			/* 4. NEW products */
-			CASE 
+				END ASC,
+			
+				/* =========================
+				5. NEW PRODUCTS
+				========================= */
+				CASE 
 				WHEN meta.is_new = 1 THEN 0
 				ELSE 1
-			END ASC,
-		
-			/* 5. Stable fallback */
-			p.ID ASC
-	");
+				END ASC,
+			
+				/* =========================
+				6. STABLE FALLBACK
+				========================= */
+				p.ID ASC
+		");
 
 	// Cache for 12 hours for performance.
 	set_transient( $cache_key, $product_ids, 12 * HOUR_IN_SECONDS );
