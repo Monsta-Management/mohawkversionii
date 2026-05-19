@@ -6,6 +6,81 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.3.0-rc.1] - 2026-05-19
+### Added
+- Implemented GitHub-based automatic theme updates using the Plugin Update Checker (PUC) library.
+- Added spinning image/video bucket-hosted support with `trophymonstavalidator` plugin integration.
+- Added frontend support for validated `_trophymonsta_image`.
+- Added ACF toggle `Disable Hover Submenu` to switch menu dropdown behavior from hover to click.
+- Added submenu caret indicators when hover mode is disabled.
+- Added ACF Category Settings:
+  - Parent category slug
+  - Custom child category ordering
+- Added dynamic category ordering across:
+  - shortcodes
+  - menu walker
+  - category lists
+- Added `handleMainMenuCarousel()` support to the main navigation menu.
+- Added dynamic product mark logo support using ACF `site_product_mark_logo`.
+- Added smart fallback support for `[acf_featured_products]` shortcode.
+- Added `Monsta Unified Core` ACF Bulk Pricing integration to WooCommerce product card templates.
+- Added `[custom_catalogues]` shortcode.
+- Added `[custom_gallery]` shortcode with Lightbox support.
+
+### Changed
+- Refactored product sorting and ranking system.
+- Simplified supplier-based product grouping logic.
+- Prioritized:
+  - supplier ranking
+  - NEW products
+  - media-enhanced products
+- Improved stable product ordering consistency.
+- Replaced JS-based sticky sidebar handling with native CSS `position: sticky`.
+- Parent theme styles are no longer automatically loaded when using child themes.
+- Child themes are now fully responsible for site-specific styling.
+- Removed manual CSS class injections from `content-product-card.php`.
+
+### Improved
+- Improved child theme compatibility and parent version detection.
+- Improved ACF auto-import reliability.
+- Improved frontend handling for sites without S3 media data.
+- Improved product ranking reliability across multiple categories.
+- Improved session handling and cache stability.
+- Reduced WooCommerce query complexity for better performance.
+- Added transient caching to reduce repeated heavy database queries.
+- Improved submenu JavaScript handling based on ACF settings.
+- Moved validator plugin JS/CSS assets into the base theme.
+- Improved general theme style compatibility.
+- Optimized:
+  - `inc/woocommerce.php`
+  - `woocommerce/content-product-card.php`
+- Lightbox2 is now globally available instead of WooCommerce-only.
+
+### Fixed
+- Fixed outdated WooCommerce template overrides.
+- Fixed hardcoded category slug handling using ACF settings.
+- Fixed `archive-product.php` sidebar markup issues.
+- Fixed `archive-product.php` sidebar ACF logic.
+- Fixed deprecated WooCommerce function usage.
+- Fixed legacy `reset()` warnings.
+- Fixed PHP fatal error when saving WordPress menus caused by incorrect meta hook argument handling.
+- Fixed crashes caused by incomplete `deleted_postmeta` hook arguments.
+- Fixed undefined `$term` warning in `[show_related_product]` shortcode.
+- Removed unsafe manual term loop logic.
+- Replaced deprecated `$product->id` usage with `$product->get_id()`.
+- Fixed flagged issues:
+  - `template-parts/subcategories-order.php`
+  - `inc/accessories.php`
+
+### Reverted
+- Reverted `productsInfiniteResult()` AJAX implementation due to performance-related issues.
+
+### Internal
+- Tested Plugin Update Checker (PUC) reliability.
+- Improved overall theme maintainability and WooCommerce compatibility.
+
+---
+
 ## [2.2.12-alpha] - 2026-05-11
 ### Fixed
 - fixed PHP warning caused by undefined `$term` variable on `[show_related_product]` shorcode.
