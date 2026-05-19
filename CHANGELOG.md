@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.3.0] - 2026-05-19
+### Changed
+- Final production fixes from RC testing.
+
+---
+
 ## [2.3.0-rc.1] - 2026-05-19
 ### Added
 - Implemented GitHub-based automatic theme updates using the Plugin Update Checker (PUC) library.
