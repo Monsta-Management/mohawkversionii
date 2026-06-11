@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.3.2] - 2026-06-11
+### Improved
+- replace base theme `screenshot.png` appropriately. 
+
+---
+
 ## [2.3.1] - 2026-05-19
 ### Added
 - Added product-level STAR RANKING prioritization system.
