@@ -254,19 +254,133 @@ function mohawk_get_cached_variations( $product ) {
 }
 
 /**
- * Create image url attribute to size options.
+ * Create image URL attributes for product variations.
+ *
+ * For medal products, variation images are sorted in the same order as
+ * medal_color_sorting() (Gold > Silver > Bronze).
+ *
+ * For all other products, variation images are returned in their original
+ * WooCommerce order.
  */
 function product_image_vartiant( $product ) {
-	$variations = mohawk_get_cached_variations( $product );
 
-	if ( ! empty( $variations ) ) {
+	if ( ! $product || ! is_object( $product ) ) {
+		return [];
+	}
 
-		$image_variation = [];
-		foreach ( $variations as $variation ) {
-			$image_variation[] = $variation['image']['url'];
+	$variations = method_exists( $product, 'get_available_variations' )
+		? $product->get_available_variations()
+		: [];
+
+	if ( empty( $variations ) ) {
+		return [];
+	}
+
+	// Determine if this is a medal product.
+	$is_medal = false;
+	$terms    = get_the_terms( $product->get_id(), 'product_cat' );
+
+	if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+		foreach ( $terms as $term ) {
+			if ( 'Medals' === $term->name ) {
+				$is_medal = true;
+				break;
+			}
 		}
 	}
-	return $image_variation;
+
+	$image_variation = [];
+
+	foreach ( $variations as $variation ) {
+
+		if ( empty( $variation['image']['url'] ) ) {
+			continue;
+		}
+
+		$image_url = $variation['image']['url'];
+
+		// Non-medal products: preserve WooCommerce order.
+		if ( ! $is_medal ) {
+			$image_variation[] = $image_url;
+			continue;
+		}
+
+		$attrs     = $variation['attributes'] ?? [];
+		$size_attr = strtolower( $attrs['attribute_pa_monstasize'] ?? '' );
+
+		$color_key  = '';
+		$color_name = '';
+
+		// Match wildcard colour patterns first.
+		if ( false !== strpos( $size_attr, 'gvp' ) ) {
+			$color_key  = 'G';
+			$color_name = 'Gold';
+
+		} elseif ( false !== strpos( $size_attr, 'svp' ) ) {
+			$color_key  = 'S';
+			$color_name = 'Silver';
+
+		} elseif ( false !== strpos( $size_attr, 'bvp' ) ) {
+			$color_key  = 'BR';
+			$color_name = 'Bronze';
+
+		} else {
+
+			// Fallback to existing EV SKU convention detection.
+			$segments = explode( '-', $size_attr );
+
+			foreach ( $segments as $segment ) {
+
+				$segment = strtoupper( $segment );
+
+				if ( str_ends_with( $segment, 'BR' ) ) {
+					$color_key  = 'BR';
+					$color_name = 'Bronze';
+					break;
+				}
+
+				if ( str_ends_with( $segment, 'G' ) ) {
+					$color_key  = 'G';
+					$color_name = 'Gold';
+					break;
+				}
+
+				if ( str_ends_with( $segment, 'S' ) ) {
+					$color_key  = 'S';
+					$color_name = 'Silver';
+					break;
+				}
+			}
+		}
+
+		$image_variation[] = [
+			'sort' => $color_key . '|' . $color_name,
+			'url'  => $image_url,
+		];
+	}
+
+	// Medal products: sort using the same colour logic as the swatches.
+	if ( $is_medal && ! empty( $image_variation ) ) {
+
+		usort(
+			$image_variation,
+			function ( $a, $b ) {
+
+				if ( function_exists( 'medal_color_sorting' ) ) {
+					return medal_color_sorting(
+						$a['sort'],
+						$b['sort']
+					);
+				}
+
+				return strcmp( $a['sort'], $b['sort'] );
+			}
+		);
+
+		$image_variation = array_column( $image_variation, 'url' );
+	}
+
+	return array_values( array_unique( $image_variation ) );
 }
 
 /**

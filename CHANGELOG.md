@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.4.0] - 2026-06-12
+### Improved
+- Updated product variation image selection `product_image_vartiant()` to prioritise Gold medal variants on archive and shop pages.
+- Aligned variation image ordering with existing medal colour sorting logic for consistent swatch and image display.
+- Removed dependency on image filename patterns for colour detection.
+- Preserved default WooCommerce variation ordering for non-medal products.
+- Improved WooCommerce compatibility and added safeguards for missing variation data.
+
+---
+
 ## [2.3.2] - 2026-06-11
 ### Improved
 - replace base theme `screenshot.png` appropriately. 
