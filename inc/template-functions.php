@@ -611,7 +611,7 @@ function get_cached_sorted_product_ids() {
 
 // Hook WooCommerce shop/category pages.
 function sort_woocommerce_products_by_rank_cached( $query ) {
-	if ( $query->is_main_query() && ( is_shop() || is_product_category() ) ) {
+	if ( $query->is_main_query() && ! is_search() && ( is_shop() || is_product_category() ) ) {
 		$product_ids = get_cached_sorted_product_ids();
 
 		if ( ! empty( $product_ids ) ) {

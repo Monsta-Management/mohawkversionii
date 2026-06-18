@@ -9,7 +9,7 @@
 
 if ( ! defined( 'MOHAWK_VERSION' ) ) {
 	// Replace the version number of the theme on each release.
-	define( 'MOHAWK_VERSION', '2.4.0' );
+	define( 'MOHAWK_VERSION', '2.4.1' );
 }
 
 /**
@@ -336,72 +336,60 @@ if ( class_exists( 'WooCommerce' ) ) {
 	require get_template_directory() . '/inc/woocommerce.php';
 }
 
-/*
-*
-* PRODUCT SORTING OVERRIDES START
-*
-*/
-/*function remove_old_sorting_hook() {
-	remove_action( 'pre_get_posts', 'sort_woocommerce_products_by_term_ranking' );
-}
-add_action( 'after_setup_theme', 'remove_old_sorting_hook', 999 );
-
-// Custom sorting options.
-function monsta_customize_product_sorting( $sorting_options ){
-	$sorting_options = array(
-		'menu_order'        => __( 'FILTER PRODUCTS', 'mohawkversionii' ),
-		'popularity'        => __( 'Sort by Popularity', 'mohawkversionii' ),
-		'date'              => __( 'Sort by New', 'mohawkversionii' ),
-		'price-low-to-high' => __( 'Sort by Price: low to high', 'mohawkversionii' ),
-		'price-high-to-low' => __( 'Sort by Price: high to low', 'mohawkversionii' ),
-	);
-
-	return $sorting_options;
-}
-add_filter( 'woocommerce_catalog_orderby', 'monsta_customize_product_sorting' );
-
-function monsta_get_catalog_ordering_args( $args ) {
-	// Check if the 'orderby' parameter is set
-	if ( isset( $_GET['orderby'] ) ) {
-		switch ( $_GET['orderby'] ) {
-			case 'popularity':
-				$args['orderby'] = 'meta_value_num';
-				$args['meta_key'] = 'total_sales';
-				$args['order'] = 'DESC';
-				break;
-				
-			case 'date':
-				$args['meta_key'] = '_trophymonsta_info_new';
-				$args['orderby'] = 'meta_value';
-				$args['order'] = 'DESC';
-				break;
-				
-			case 'price-low-to-high':
-				$args['orderby'] = 'meta_value_num';
-				$args['meta_key'] = '_price';
-				$args['order'] = 'ASC';
-				$args['meta_type'] = 'DECIMAL';
-				break;
-				
-			case 'price-high-to-low':
-				$args['orderby'] = 'meta_value_num';
-				$args['meta_key'] = '_price';
-				$args['order'] = 'DESC';
-				$args['meta_type'] = 'DECIMAL';
-				break;
-				
-			case 'menu_order':
-			default:
-				$args['meta_key'] = '_trophymonsta_info_new';
-				$args['orderby'] = 'meta_value';
-				$args['order'] = 'DESC';
-				break;
-		}
+/**
+ * Mohawk infinite scroll — WC-aligned sort clauses.
+ *
+ * Joins wp_wc_product_meta_lookup the same way WC's catalog query does, so
+ * AJAX and SSR produce identical orderings. Stable tiebreaker on product_id
+ * eliminates duplicates at tied prices/totals (the 2026-06-08 dup-products-
+ * across-pagination bug).
+ *
+ * One-shot filter — auto-removes itself after firing so it can't leak into
+ * other queries on the same request.
+ */
+function mohawk_install_wc_sort_clauses( $metric, $direction = 'ASC' ) {
+	$direction     = strtoupper( $direction ) === 'DESC' ? 'DESC' : 'ASC';
+	$valid_metrics = array( 'min_price', 'max_price', 'total_sales', 'average_rating' );
+	if ( ! in_array( $metric, $valid_metrics, true ) ) {
+		return;
 	}
-
-	return $args;
+	$filter = function( $clauses ) use ( $metric, $direction, &$filter ) {
+		global $wpdb;
+		$alias = 'mhwk_pml';
+		if ( strpos( $clauses['join'], 'wc_product_meta_lookup' ) === false ) {
+			$clauses['join'] .= " LEFT JOIN {$wpdb->prefix}wc_product_meta_lookup AS {$alias} ON {$wpdb->posts}.ID = {$alias}.product_id ";
+			$order_table = $alias;
+		} else {
+			// WC already joined — use its canonical alias.
+			$order_table = 'wc_product_meta_lookup';
+		}
+		// Tiebreaker direction must match the primary sort direction to match
+		// WC's catalog query exactly (WC uses `product_id DESC` for DESC sorts
+		// and `product_id ASC` for ASC sorts). A direction mismatch reverses
+		// tied rows between SSR and AJAX, reintroducing the duplicate-products-
+		// at-tied-price-boundaries bug.
+		$tie_direction = $direction; // ASC pairs with ASC; DESC pairs with DESC
+		if ( $metric === 'average_rating' ) {
+			$clauses['orderby'] = "{$order_table}.average_rating {$direction}, {$order_table}.rating_count DESC, {$order_table}.product_id {$tie_direction}";
+		} else {
+			$clauses['orderby'] = "{$order_table}.{$metric} {$direction}, {$order_table}.product_id {$tie_direction}";
+		}
+		remove_filter( 'posts_clauses', $filter, 10 );
+		return $clauses;
+	};
+	add_filter( 'posts_clauses', $filter, 10, 1 );
 }
-add_filter( 'woocommerce_get_catalog_ordering_args', 'monsta_get_catalog_ordering_args' );*/
+
+/**
+ * Return the WC catalog per_page setting (columns × rows). Defaults to 12.
+ * Used to align AJAX paging boundaries with SSR catalog paging.
+ */
+function mohawk_get_catalog_per_page() {
+	$cols = (int) get_option( 'woocommerce_catalog_columns', 4 );
+	$rows = (int) get_option( 'woocommerce_catalog_rows', 3 );
+	$pp   = $cols * $rows;
+	return $pp > 0 ? $pp : 12;
+}
 
 /**
  * AJAX handler for infinite scroll product loading.
@@ -410,9 +398,179 @@ add_filter( 'woocommerce_get_catalog_ordering_args', 'monsta_get_catalog_orderin
 function mohawk_infinite_scroll_handler() {
 	check_ajax_referer( 'mohawk_infinite_nonce', 'nonce' );
 
-	$paged    = isset( $_GET['paged'] ) ? absint( $_GET['paged'] ) : 1;
-	$per_page = isset( $_GET['per_page'] ) ? absint( $_GET['per_page'] ) : 24;
+	$paged    = isset( $_GET['paged'] )    ? absint( $_GET['paged'] )    : 1;
+	// Force per_page to match WC catalog (SSR) so AJAX page boundaries align
+	// with SSR page boundaries. Ignore the JS-supplied per_page — historic
+	// value was hard-coded to 24 in localize_script while WC catalog renders
+	// 12 per page, producing both gaps and duplicates in the appended scroll.
+	$per_page = mohawk_get_catalog_per_page();
 	$category = isset( $_GET['category'] ) ? sanitize_text_field( $_GET['category'] ) : '';
+	$orderby  = isset( $_GET['orderby'] )  ? sanitize_text_field( $_GET['orderby'] )  : '';
+
+	// ------------------------------------------------------------------
+	// Search context detection.
+	//
+	// The current JS infinite-scroll script doesn't pass the search query
+	// (existing fields: paged, per_page, category, orderby). Fall back to
+	// parsing the referring URL — when a user scrolls on the search results
+	// page, each AJAX call has that page as its referer, carrying ?s=...
+	// in the URL. This lets us honour search without changing the front-end.
+	//
+	// Future improvement: have the JS also pass $_GET['s'] explicitly; this
+	// handler already reads it as the primary source for that case.
+	// ------------------------------------------------------------------
+	$search   = isset( $_GET['s'] )        ? sanitize_text_field( $_GET['s'] )        : '';
+	$type_aws = isset( $_GET['type_aws'] ) ? sanitize_text_field( $_GET['type_aws'] ) : '';
+
+	if ( empty( $search ) ) {
+		$referer = wp_get_referer();
+		if ( $referer ) {
+			$referer_q = parse_url( $referer, PHP_URL_QUERY );
+			if ( $referer_q ) {
+				parse_str( $referer_q, $rp );
+				if ( ! empty( $rp['s'] ) ) {
+					$search   = sanitize_text_field( $rp['s'] );
+					$type_aws = isset( $rp['type_aws'] ) ? sanitize_text_field( $rp['type_aws'] ) : $type_aws;
+				}
+			}
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// SEARCH path — run a product-search WP_Query when ?s= is detected.
+	// The cached-ranking path below is wrong for search because it doesn't
+	// filter by the search query; subsequent infinite-scroll pages would
+	// return the full catalogue's ranking-ordered tail.
+	// ------------------------------------------------------------------
+	if ( ! empty( $search ) ) {
+		// Preserve AWS plugin context — if it was in the original URL, simulate
+		// it on the AJAX request so AWS's pre_get_posts hooks fire identically.
+		if ( ! empty( $type_aws ) && empty( $_GET['type_aws'] ) ) {
+			$_GET['type_aws'] = $type_aws;
+		}
+
+		$query_args = array(
+			's'              => $search,
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => $per_page,
+			'paged'          => $paged,
+		);
+
+		// Use WC-aligned sort clauses (JOIN wc_product_meta_lookup) instead of
+		// meta_value_num + postmeta. Adds a stable product_id tiebreaker so
+		// products tied on price/sales/rating land in a deterministic order
+		// across paginated WP_Query invocations.
+		switch ( strtolower( $orderby ) ) {
+			case 'price':
+				mohawk_install_wc_sort_clauses( 'min_price', 'ASC' );
+				break;
+			case 'price-desc':
+				mohawk_install_wc_sort_clauses( 'max_price', 'DESC' );
+				break;
+			case 'date':
+				$query_args['orderby'] = 'date';
+				$query_args['order']   = 'DESC';
+				break;
+			case 'popularity':
+				mohawk_install_wc_sort_clauses( 'total_sales', 'DESC' );
+				break;
+			case 'rating':
+				mohawk_install_wc_sort_clauses( 'average_rating', 'DESC' );
+				break;
+			// default (menu_order / '') — use relevance ordering from search
+		}
+
+		$query     = new WP_Query( $query_args );
+		$max_pages = (int) $query->max_num_pages;
+
+		ob_start();
+		if ( $query->have_posts() ) {
+			while ( $query->have_posts() ) {
+				$query->the_post();
+				wc_get_template_part( 'content', 'product-card' );
+			}
+			wp_reset_postdata();
+		}
+		$html = ob_get_clean();
+
+		wp_send_json_success( array(
+			'html'      => $html,
+			'max_pages' => $max_pages,
+			'page'      => $paged,
+		) );
+		return;
+	}
+
+	// ------------------------------------------------------------------
+	// SORT path — same as before: if user picked a real sort, run a
+	// proper WC catalog WP_Query instead of the cached "ranking" path.
+	// ------------------------------------------------------------------
+	$orderby_lc = strtolower( $orderby );
+
+	if ( $orderby_lc && $orderby_lc !== 'menu_order' ) {
+		$query_args = array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => $per_page,
+			'paged'          => $paged,
+		);
+
+		if ( ! empty( $category ) ) {
+			$query_args['tax_query'] = array(
+				array(
+					'taxonomy' => 'product_cat',
+					'field'    => 'slug',
+					'terms'    => $category,
+				),
+			);
+		}
+
+		// WC-aligned sort (see search path above for rationale).
+		switch ( $orderby_lc ) {
+			case 'price':
+				mohawk_install_wc_sort_clauses( 'min_price', 'ASC' );
+				break;
+			case 'price-desc':
+				mohawk_install_wc_sort_clauses( 'max_price', 'DESC' );
+				break;
+			case 'date':
+				$query_args['orderby'] = 'date';
+				$query_args['order']   = 'DESC';
+				break;
+			case 'popularity':
+				mohawk_install_wc_sort_clauses( 'total_sales', 'DESC' );
+				break;
+			case 'rating':
+				mohawk_install_wc_sort_clauses( 'average_rating', 'DESC' );
+				break;
+		}
+
+		$query     = new WP_Query( $query_args );
+		$max_pages = (int) $query->max_num_pages;
+
+		ob_start();
+		if ( $query->have_posts() ) {
+			while ( $query->have_posts() ) {
+				$query->the_post();
+				wc_get_template_part( 'content', 'product-card' );
+			}
+			wp_reset_postdata();
+		}
+		$html = ob_get_clean();
+
+		wp_send_json_success( array(
+			'html'      => $html,
+			'max_pages' => $max_pages,
+			'page'      => $paged,
+		) );
+		return;
+	}
+
+	// ------------------------------------------------------------------
+	// DEFAULT path: cached "ranking" sorted product IDs.
+	// (Original handler logic — preserved unchanged.)
+	// ------------------------------------------------------------------
 
 	// Get fully cached sorted product IDs from mohawkversion/inc/template-functions.php
 	$all_product_ids = get_cached_sorted_product_ids(); // returns array of post IDs sorted by ranking
@@ -456,7 +614,7 @@ function mohawk_infinite_scroll_handler() {
 		'post_type'      => 'product',
 		'post_status'    => 'publish',
 		'post__in'       => $page_ids,
-		'orderby'        => 'post__in', // keep the order from $all_product_ids.
+		'orderby'        => 'post__in',
 		'posts_per_page' => $per_page,
 		'no_found_rows'  => true,
 	]);

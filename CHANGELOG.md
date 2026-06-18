@@ -6,6 +6,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.4.1] - 2026-06-18
+### Fixed
+- **Category Permalink (CPL) Sorting:** Resolved an issue where friendly-slug URLs (e.g., `/shop/medals/?orderby=price-desc`) were collapsing into a single page lookup.
+  - *Fix:* Refactored the request lifecycle; CPL translation now occurs via the `request` filter before `WP_Query` is constructed.
+- **Search Infinite Scroll:** AJAX handlers now correctly detect the search context from the referrer.
+  - *Fix:* Sorting parameters (e.g., `price-desc`) are now respected during infinite scroll, replacing the previous behavior of defaulting to site-wide cached rankings.
+- **Search Results Accuracy:** Disabled Advanced Woo Search (AWS) plugin takeover of search results pages to prevent integer truncation errors and 100-result caps.
+  - *Note:* AWS autosuggest dropdown functionality remains intact.
+- **Pagination Rewrite Rules:** Resolved 404/redirect errors on paginated archives (e.g., `/page/N/`).
+  - *Fix:* Reordered rewrite rules so that paginated rules are registered before depth-based rules, preventing rule conflicts.
+- **Product Duplication:** Resolved issues where products tied on price appeared in both Server-Side Rendered (SSR) and AJAX batches.
+  - *Fix:* Aligned AJAX batching logic to match the main catalog query (identical per-page count and joining logic).
+
+### Improved
+- **CPL Impersonation:** Replaced ~130 lines of legacy `parse_query` impersonation logic with a more efficient ~50-line `request` filter (`cpl_translate_request`).
+- **Theme Integration:** Patched `themes/mohawkversionii/functions.php` and `template-functions.php` to support search context detection.
+- **New Plugin Added:** Introduced `mu-plugins/aws-disable-search-page.php` to isolate the AWS plugin to the search bar only.
+
+### Files Impacted
+The following changes affect the site structure. **Note that critical logic is contained within the `mu-plugins/` directory:**
+
+**Must-Use Plugins (`mu-plugins/`):**
+- `mu-plugins/category-permalink-rewrite.php` (Refactored)
+- `mu-plugins/aws-disable-search-page.php` (New)
+
+### Requirements
+- **Flush Rewrite Rules:** You must perform a rewrite flush after deploying these changes (`wp rewrite flush` or visiting Settings → Permalinks).
+- **Client-Side:** Users should hard refresh (CTRL+SHIFT+R or CMD+SHIFT+R) to ensure the latest version of the site scripts is loaded.
+
+---
+
 ## [2.4.0] - 2026-06-12
 ### Improved
 - Updated product variation image selection `product_image_vartiant()` to prioritise Gold medal variants on archive and shop pages.
