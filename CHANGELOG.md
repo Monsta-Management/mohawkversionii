@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.4.2] - 2026-06-18
+### Improved
+- extend product variation image selection `product_image_vartiant()` fix to include S3 images.
+
+---
+
 ## [2.4.1] - 2026-06-18
 ### Fixed
 - **Category Permalink (CPL) Sorting:** Resolved an issue where friendly-slug URLs (e.g., `/shop/medals/?orderby=price-desc`) were collapsing into a single page lookup.

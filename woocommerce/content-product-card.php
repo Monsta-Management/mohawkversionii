@@ -15,21 +15,21 @@ if ( has_post_thumbnail( $product_id ) ) {
 	$thumb_id = get_post_thumbnail_id( $product_id );
 	$image_data = wp_get_attachment_image_src( $thumb_id, 'large' );
 
-    if ( is_array( $image_data ) && ! empty( $image_data[0] ) ) {
-    	$thumb_url = $image_data[0];
-    }
+	if ( is_array( $image_data ) && ! empty( $image_data[0] ) ) {
+		$thumb_url = $image_data[0];
+	}
 }
 
 // Gallery images.
 if ( empty( $thumb_url ) ) {
 	foreach ( $attachment_ids as $attachment_id ) {
-    	$url = wp_get_attachment_url( $attachment_id );
+		$url = wp_get_attachment_url( $attachment_id );
 
-    	if ( $url ) {
-    		$thumb_url = $url;
-    		break; // stop at first valid image.
-    	}
-    }
+		if ( $url ) {
+			$thumb_url = $url;
+			break; // stop at first valid image.
+		}
+	}
 }
 
 // Variant image.
@@ -97,8 +97,12 @@ if ( defined( 'TROPHYMONSTA_VALIDATOR_VERSION' ) ) {
 	} 
 }
 
-if ( empty( $trophymonsta_image ) ) {
-	$trophymonsta_image = $thumb_url; // Fallback to local image if no validated S3 image.
+$is_medal_product = ! empty( $color_items ); // image variant checker.
+
+if ( $is_medal_product ) {
+	$trophymonsta_image = $thumb_url;
+} elseif ( empty( $trophymonsta_image ) ) {
+	$trophymonsta_image = $thumb_url; // fallback to local image if no validated S3 image.
 }
 // SPINNING video/image display END.
 
