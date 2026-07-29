@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.4.3] - 2026-07-29
+### Fixed
+- Improved default product variant selection for trophy products with multiple size options.
+- Prevented medal color sorting logic from affecting non-medal products by detecting color-based variants using `.tr-colors`.
+- Fixed incorrect default selection on products where size variant SKUs contained the letter `G`.
+
+### Improved
+- include v2.4.2.hotfix1.
+
+---
+
 ## [2.4.2] - 2026-06-18
 ### Improved
 - extend product variation image selection `product_image_vartiant()` fix to include S3 images.
