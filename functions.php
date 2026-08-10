@@ -9,7 +9,7 @@
 
 if ( ! defined( 'MOHAWK_VERSION' ) ) {
 	// Replace the version number of the theme on each release.
-	define( 'MOHAWK_VERSION', '2.4.3' );
+	define( 'MOHAWK_VERSION', '2.4.4' );
 }
 
 /**
@@ -576,24 +576,59 @@ function mohawk_infinite_scroll_handler() {
 	$all_product_ids = get_cached_sorted_product_ids(); // returns array of post IDs sorted by ranking
 
 	// Get pre-cached category mapping (product_id => array of category_ids). If not cached, generate once and cache for future requests.
-	$category_map = get_transient('mohawk_product_category_map');
-	if ( false === $category_map ) {
-		$category_map = [];
+	$category_map = get_transient( 'mohawk_product_category_map' );
+	if ( false === $category_map || ! is_array( $category_map ) ) {
+		$category_map = array();
+	
 		foreach ( $all_product_ids as $pid ) {
-			$terms = wp_get_post_terms( $pid, 'product_cat', [ 'fields' => 'ids' ] );
-			$category_map[ $pid ] = $terms ?: [];
+			$terms = wp_get_post_terms(
+				$pid,
+				'product_cat',
+				array(
+					'fields' => 'ids',
+				)
+			);
+	
+			$category_map[ $pid ] = ! is_wp_error( $terms ) ? $terms : array();
 		}
-
-		set_transient( 'mohawk_product_category_map', $category_map, HOUR_IN_SECONDS ); // cache it for 1 hour.
+	
+		set_transient(
+			'mohawk_product_category_map',
+			$category_map,
+			HOUR_IN_SECONDS
+		);
 	}
 
 	if ( ! empty( $category ) ) {
 		$term = get_term_by( 'slug', $category, 'product_cat' );
+	
 		if ( $term && ! is_wp_error( $term ) ) {
 			$term_id = (int) $term->term_id;
-			$all_product_ids = array_filter( $all_product_ids, function( $pid ) use ( $category_map, $term_id ) {
-				return in_array( $term_id, $category_map[ $pid ] );
-			});
+	
+			$all_product_ids = array_filter(
+				$all_product_ids,
+				function ( $pid ) use ( &$category_map, $term_id ) {
+	
+					// Make sure the product has a valid category-map entry.
+					if ( ! isset( $category_map[ $pid ] ) || ! is_array( $category_map[ $pid ] ) ) {
+						$terms = wp_get_post_terms(
+							$pid,
+							'product_cat',
+							array(
+								'fields' => 'ids',
+							)
+						);
+	
+						$category_map[ $pid ] = ! is_wp_error( $terms ) ? $terms : array();
+					}
+	
+					return in_array(
+						$term_id,
+						$category_map[ $pid ],
+						true
+					);
+				}
+			);
 		}
 	}
 

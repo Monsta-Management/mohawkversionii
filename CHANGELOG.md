@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.4.4] - 2026-08-10
+### Fixed
+- Fixed an HTTP 500 error occurring on infinite-scroll AJAX requests for product category pages.
+- Fixed a fatal `TypeError` caused by `in_array()` receiving `null` from an incomplete or invalid `mohawk_product_category_map` transient.
+- Added validation and fallback handling for missing or invalid cached product category mappings.
+- Added automatic category retrieval for products missing valid category-map entries.
+- Added strict category ID comparison to improve reliability of category filtering.
+- Improved error handling when `wp_get_post_terms()` returns a `WP_Error`.
+
+---
+
 ## [2.4.3] - 2026-07-29
 ### Fixed
 - Improved default product variant selection for trophy products with multiple size options.
