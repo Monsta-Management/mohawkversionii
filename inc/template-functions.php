@@ -37,15 +37,24 @@ function mohawkversionii_pingback_header() {
 add_action( 'wp_head', 'mohawkversionii_pingback_header' );
 
 /**
- * Disallow access to engraving page when empty cart.
+ * Redirect customers to the shop when they access the main checkout page with an empty cart.
  */
-function redirect_to_cart_if_empty() {
-	if ( WC()->cart->is_empty() && ( is_page( 'monsta-engravings-settings' ) || is_page( 'monsta-engravings-details' ) || is_page( 'monsta-engravings-review' ) ) ) {
-		wp_safe_redirect( wc_get_cart_url() );
+function redirect_to_shop_if_checkout_cart_empty() {
+	if ( ! is_checkout() || is_wc_endpoint_url() ) {
+		return;
+	}
+
+	if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+		return;
+	}
+
+	if ( WC()->cart->is_empty() ) {
+		wp_safe_redirect( wc_get_page_permalink( 'shop' ) );
 		exit;
 	}
 }
-add_action( 'template_redirect', 'redirect_to_cart_if_empty' );
+
+add_action( 'template_redirect', 'redirect_to_shop_if_checkout_cart_empty' );
 
 /**
  * Reset engraving when updated cart.

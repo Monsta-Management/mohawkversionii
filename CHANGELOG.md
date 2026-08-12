@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.4.5] - 2026-08-12
+### Improved
+- Redirected users from the checkout page to the shop when the cart is empty.
+- Added WooCommerce cart availability checks to prevent `WC()->cart` null errors.
+- Removed the outdated `engraving-page` redirect logic.
+
+---
+
 ## [2.4.4] - 2026-08-10
 ### Fixed
 - Fixed an HTTP 500 error occurring on infinite-scroll AJAX requests for product category pages.
