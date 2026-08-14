@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   
 ---
 
+## [2.4.6] - 2026-08-14
+### Fixed
+- Fixed medal colour variation ordering to consistently display **Gold → Silver → Bronze**.
+- Sorting now uses the existing colour mapping instead of variation codes.
+- Prevented colour sorting from affecting size-based awards and trophies.
+
+---
+
 ## [2.4.5] - 2026-08-12
 ### Improved
 - Redirected users from the checkout page to the shop when the cart is empty.

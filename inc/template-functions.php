@@ -53,7 +53,6 @@ function redirect_to_shop_if_checkout_cart_empty() {
 		exit;
 	}
 }
-
 add_action( 'template_redirect', 'redirect_to_shop_if_checkout_cart_empty' );
 
 /**

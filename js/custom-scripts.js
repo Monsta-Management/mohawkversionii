@@ -610,62 +610,84 @@
 	function productSummaryColorOrderSetGoldFirstNew() {
 		var productSummary = $('.product .product-summary');
 	
-		if (productSummary.length) {
-			productSummary.each(function() {
-				var sizeEl = $(this).find('select[name="attribute_pa_monstasize"]');
-				var colorsEl = $(this).find('.tr-colors .product-variant-items-new');
-				var is_medal = colorsEl.length > 0;
+		if (!productSummary.length) {
+			return;
+		}
 	
-				if (sizeEl.length) {
-					var goldOption = null;
+		productSummary.each(function() {
 	
-					// Get gold option
-					sizeEl.find('option').each(function() {
-						var size_val = $(this).attr('value');
-
-						if (is_medal && size_val.toUpperCase().includes('G')) {
-							goldOption = $(this);
-						}
-					});
+			var sizeEl   = $(this).find('select[name="attribute_pa_monstasize"]');
+			var colorsEl = $(this).find('.tr-colors .product-variant-items-new');
 	
-					// Set gold option as first
-					if (goldOption) {
-						sizeEl.find('option:eq(0)').after(goldOption);
-					}
-				}
+			/*
+			 * Only medals have .tr-colors.
+			 * Awards/trophies use normal sizes and must not be reordered.
+			 */
+			if (!sizeEl.length || !colorsEl.length) {
+				return;
+			}
 	
-				if (colorsEl.length) {
-					var goldItems = [];
-					var silverItems = [];
-					var bronzeItems = [];
-					var otherItems = [];
+			/*
+			 * Build a map:
+			 *
+			 * variation value -> colour
+			 *
+			 * The variation code itself can be anything.
+			 * We use the existing data-color value as the source of truth.
+			 */
+			var optionColorMap = {};
 	
-					// Collect color items
-					colorsEl.find('.option-item').each(function() {
-						var color_val = $(this).data('variant');
-						var colorItem = $(this).detach();
+			colorsEl.find('.option-item').each(function() {
 	
-						// Push color item to the appropriate array
-						if (is_medal) {
-							if (color_val.toUpperCase().includes('G')) {
-								goldItems.push(colorItem);
-							} else if (color_val.toUpperCase().includes('S')) {
-								silverItems.push(colorItem);
-							} else if (color_val.toUpperCase().includes('B')) {
-								bronzeItems.push(colorItem);
-							} else {
-								otherItems.push(colorItem);
-							}
-						} else {
-							otherItems.push(colorItem);
-						}
-					});
+				var variant = String($(this).data('variant') || '');
+				var color   = String($(this).data('color') || '');
 	
-					// Append all items in the desired order: G, S, B, Others
-					colorsEl.empty().append(goldItems).append(silverItems).append(bronzeItems).append(otherItems);
+				if (variant && color) {
+					optionColorMap[variant] = color;
 				}
 			});
-		}
+	
+			/*
+			 * Medal colour order:
+			 *
+			 * Gold   = 1
+			 * Silver = 2
+			 * Bronze = 3
+			 */
+			var colorPriority = {
+				'color-3': 1,
+				'color-2': 2,
+				'color-1': 3
+			};
+	
+			/*
+			 * Sort only real options.
+			 * Keep "Choose an option" untouched.
+			 */
+			var options = sizeEl.find('option').filter(function() {
+				return $(this).val() !== '';
+			});
+	
+			options.sort(function(a, b) {
+	
+				var aValue = String($(a).val() || '');
+				var bValue = String($(b).val() || '');
+	
+				var aColor = optionColorMap[aValue] || '';
+				var bColor = optionColorMap[bValue] || '';
+	
+				var aPriority = colorPriority[aColor] || 999;
+				var bPriority = colorPriority[bColor] || 999;
+	
+				return aPriority - bPriority;
+			});
+	
+			/*
+			 * Put the sorted options back into the select.
+			 */
+			sizeEl.append(options);
+	
+		});
 	}
 	
 	function productSummaryColorOrderOptions() {
@@ -1079,277 +1101,277 @@
 	}
 	
 	function productsInfiniteResult() {
-        var target = $('.infinite-wrap');
-        if (!target.length) return;
+		var target = $('.infinite-wrap');
+		if (!target.length) return;
 
-        // --- Dual-mode setup ---
-        // Mode A: mohawkInfinite is available (proper AJAX endpoint).
-        // Mode B: fallback — scrape pagination links from the DOM.
-        var useAjax = (typeof mohawkInfinite !== 'undefined');
+		// --- Dual-mode setup ---
+		// Mode A: mohawkInfinite is available (proper AJAX endpoint).
+		// Mode B: fallback — scrape pagination links from the DOM.
+		var useAjax = (typeof mohawkInfinite !== 'undefined');
 
-        var currentPage, maxPages;
+		var currentPage, maxPages;
 
-        if (useAjax) {
-            currentPage = parseInt(mohawkInfinite.current_page, 10) || 1;
-            maxPages    = parseInt(mohawkInfinite.max_pages, 10) || 1;
-        } else {
-            // Fallback: determine current page from pagination or default to 1.
-            currentPage = 1;
-            // Estimate max pages from pagination links in the DOM.
-            var paginationLinks = $('.pagination-wrap, .custom-pagination, .pagination-c');
-            var lastPageNum = 1;
-            paginationLinks.find('a.page-numbers, span.page-numbers').each(function () {
-                var num = parseInt($(this).text(), 10);
-                if (!isNaN(num) && num > lastPageNum) lastPageNum = num;
-            });
-            maxPages = lastPageNum;
-        }
+		if (useAjax) {
+			currentPage = parseInt(mohawkInfinite.current_page, 10) || 1;
+			maxPages    = parseInt(mohawkInfinite.max_pages, 10) || 1;
+		} else {
+			// Fallback: determine current page from pagination or default to 1.
+			currentPage = 1;
+			// Estimate max pages from pagination links in the DOM.
+			var paginationLinks = $('.pagination-wrap, .custom-pagination, .pagination-c');
+			var lastPageNum = 1;
+			paginationLinks.find('a.page-numbers, span.page-numbers').each(function () {
+				var num = parseInt($(this).text(), 10);
+				if (!isNaN(num) && num > lastPageNum) lastPageNum = num;
+			});
+			maxPages = lastPageNum;
+		}
 
-        var isLoading      = false;
-        var prefetchedData = null;
-        var isDone         = false;
-        // 2026-06-18 hotfix: dedupe loaded pages so the 5 parallel scroll
-        // triggers + prefetch race can't double-render the same paged batch.
-        // Seeded with the SSR's current page (already in the DOM).
-        var loadedPages    = {};
-        loadedPages[currentPage] = true;
+		var isLoading      = false;
+		var prefetchedData = null;
+		var isDone         = false;
+		// 2026-06-18 hotfix: dedupe loaded pages so the 5 parallel scroll
+		// triggers + prefetch race can't double-render the same paged batch.
+		// Seeded with the SSR's current page (already in the DOM).
+		var loadedPages    = {};
+		loadedPages[currentPage] = true;
 
-        if (currentPage >= maxPages) {
-            target.addClass('infinite-end');
-            return;
-        }
+		if (currentPage >= maxPages) {
+			target.addClass('infinite-end');
+			return;
+		}
 
-        var loaderEl       = target.find('.infinite-loader');
-        var loadingSpinner = target.find('.loading-container');
+		var loaderEl       = target.find('.infinite-loader');
+		var loadingSpinner = target.find('.loading-container');
 
-        // Build the URL for a given page in fallback mode.
-        function buildFallbackUrl(page) {
-            var url;
+		// Build the URL for a given page in fallback mode.
+		function buildFallbackUrl(page) {
+			var url;
 
-            // Try to find the "next" pagination link first.
-            var nextLink = $('.pagination-wrap a.next, .custom-pagination a.next, .pagination-c a.next');
+			// Try to find the "next" pagination link first.
+			var nextLink = $('.pagination-wrap a.next, .custom-pagination a.next, .pagination-c a.next');
 
-            if (nextLink.length) {
-                url = nextLink.attr('href');
-                // Replace the page number in the URL with the target page.
-                url = url.replace(/\/page\/\d+\//, '/page/' + page + '/');
-                url = url.replace(/[?&]paged=\d+/, function(m) {
-                    return m.charAt(0) + 'paged=' + page;
-                });
-            } else {
-                // Construct from current URL — strip any existing page number,
-                // then append /page/N/ before the query string.
-                var path = window.location.pathname.replace(/\/page\/\d+\/?/, '/');
-                if (path.charAt(path.length - 1) !== '/') path += '/';
-                url = path + 'page/' + page + '/' + window.location.search;
-            }
+			if (nextLink.length) {
+				url = nextLink.attr('href');
+				// Replace the page number in the URL with the target page.
+				url = url.replace(/\/page\/\d+\//, '/page/' + page + '/');
+				url = url.replace(/[?&]paged=\d+/, function(m) {
+					return m.charAt(0) + 'paged=' + page;
+				});
+			} else {
+				// Construct from current URL — strip any existing page number,
+				// then append /page/N/ before the query string.
+				var path = window.location.pathname.replace(/\/page\/\d+\/?/, '/');
+				if (path.charAt(path.length - 1) !== '/') path += '/';
+				url = path + 'page/' + page + '/' + window.location.search;
+			}
 
-            // Append infinite_result flag.
-            var sep = url.indexOf('?') !== -1 ? '&' : '?';
-            return url + sep + 'infinite_result=1';
-        }
+			// Append infinite_result flag.
+			var sep = url.indexOf('?') !== -1 ? '&' : '?';
+			return url + sep + 'infinite_result=1';
+		}
 
-        // Fetch a page of products.
-        function fetchPage(page) {
-            if (useAjax) {
-                return $.ajax({
-                    url: mohawkInfinite.ajaxurl,
-                    type: 'GET',
-                    dataType: 'json',
-                    data: {
-                        action:   'mohawk_infinite_scroll',
-                        nonce:    mohawkInfinite.nonce,
-                        paged:    page,
-                        per_page: mohawkInfinite.per_page,
-                        orderby:  mohawkInfinite.orderby,
-                        category: mohawkInfinite.category
-                    }
-                });
-            } else {
-                // Fallback: fetch the page URL, parse product HTML from response.
-                var url = buildFallbackUrl(page);
-                var deferred = $.Deferred();
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    dataType: 'html'
-                }).done(function (html) {
-                    var tempContainer = $('<div>').html(html);
-                    var products = tempContainer.find('.row-products').children();
-                    if (products.length) {
-                        // Try to get max pages from the response pagination.
-                        var respMaxPages = maxPages;
-                        tempContainer.find('a.page-numbers, span.page-numbers').each(function () {
-                            var num = parseInt($(this).text(), 10);
-                            if (!isNaN(num) && num > respMaxPages) respMaxPages = num;
-                        });
-                        deferred.resolve({
-                            success: true,
-                            data: {
-                                html: products,
-                                max_pages: respMaxPages,
-                                page: page
-                            }
-                        });
-                    } else {
-                        deferred.resolve({ success: false });
-                    }
-                }).fail(function () {
-                    deferred.reject();
-                });
-                return deferred.promise();
-            }
-        }
+		// Fetch a page of products.
+		function fetchPage(page) {
+			if (useAjax) {
+				return $.ajax({
+					url: mohawkInfinite.ajaxurl,
+					type: 'GET',
+					dataType: 'json',
+					data: {
+						action:   'mohawk_infinite_scroll',
+						nonce:    mohawkInfinite.nonce,
+						paged:    page,
+						per_page: mohawkInfinite.per_page,
+						orderby:  mohawkInfinite.orderby,
+						category: mohawkInfinite.category
+					}
+				});
+			} else {
+				// Fallback: fetch the page URL, parse product HTML from response.
+				var url = buildFallbackUrl(page);
+				var deferred = $.Deferred();
+				$.ajax({
+					url: url,
+					type: 'GET',
+					dataType: 'html'
+				}).done(function (html) {
+					var tempContainer = $('<div>').html(html);
+					var products = tempContainer.find('.row-products').children();
+					if (products.length) {
+						// Try to get max pages from the response pagination.
+						var respMaxPages = maxPages;
+						tempContainer.find('a.page-numbers, span.page-numbers').each(function () {
+							var num = parseInt($(this).text(), 10);
+							if (!isNaN(num) && num > respMaxPages) respMaxPages = num;
+						});
+						deferred.resolve({
+							success: true,
+							data: {
+								html: products,
+								max_pages: respMaxPages,
+								page: page
+							}
+						});
+					} else {
+						deferred.resolve({ success: false });
+					}
+				}).fail(function () {
+					deferred.reject();
+				});
+				return deferred.promise();
+			}
+		}
 
-        function prefetchNextPage() {
-            var nextPage = currentPage + 1;
-            if (nextPage > maxPages || prefetchedData) return;
-            fetchPage(nextPage).done(function (response) {
-                var data = useAjax ? response.data : (response.success ? response.data : null);
-                if (data && data.html) {
-                    prefetchedData = data;
-                }
-            });
-        }
+		function prefetchNextPage() {
+			var nextPage = currentPage + 1;
+			if (nextPage > maxPages || prefetchedData) return;
+			fetchPage(nextPage).done(function (response) {
+				var data = useAjax ? response.data : (response.success ? response.data : null);
+				if (data && data.html) {
+					prefetchedData = data;
+				}
+			});
+		}
 
-        function appendProducts(data) {
-            if (!data || !data.html) return;
-            // 2026-06-18 hotfix: skip if this page was already appended.
-            // The PHP handler returns data.page on every response so JS can
-            // safely dedupe regardless of which trigger path raced first.
-            var pageNum = parseInt(data.page, 10);
-            if (!isNaN(pageNum)) {
-                if (loadedPages[pageNum]) return;
-                loadedPages[pageNum] = true;
-            }
-            if (useAjax) {
-                target.find('.row-products').append($(data.html));
-            } else {
-                // Fallback: data.html is already jQuery elements.
-                target.find('.row-products').append(data.html);
-            }
-            maxPages = parseInt(data.max_pages, 10) || maxPages;
-        }
+		function appendProducts(data) {
+			if (!data || !data.html) return;
+			// 2026-06-18 hotfix: skip if this page was already appended.
+			// The PHP handler returns data.page on every response so JS can
+			// safely dedupe regardless of which trigger path raced first.
+			var pageNum = parseInt(data.page, 10);
+			if (!isNaN(pageNum)) {
+				if (loadedPages[pageNum]) return;
+				loadedPages[pageNum] = true;
+			}
+			if (useAjax) {
+				target.find('.row-products').append($(data.html));
+			} else {
+				// Fallback: data.html is already jQuery elements.
+				target.find('.row-products').append(data.html);
+			}
+			maxPages = parseInt(data.max_pages, 10) || maxPages;
+		}
 
-        function markDone() {
-            isDone = true;
-            target.addClass('infinite-end');
-            if (observer) observer.disconnect();
-            $(window).off('scroll.infiniteScroll');
-        }
+		function markDone() {
+			isDone = true;
+			target.addClass('infinite-end');
+			if (observer) observer.disconnect();
+			$(window).off('scroll.infiniteScroll');
+		}
 
-        function loadNextPage() {
-            if (isLoading || isDone || currentPage >= maxPages) return;
+		function loadNextPage() {
+			if (isLoading || isDone || currentPage >= maxPages) return;
 
-            var targetPage = currentPage + 1;
+			var targetPage = currentPage + 1;
 
-            // 2026-06-18 hotfix: discard stale prefetch.
-            // Without this check, a prefetch in flight at init that returns
-            // AFTER the first loadNextPage has already issued its own fetch
-            // ends up as stale data for the wrong page, and the next trigger
-            // path appends it as if it were the new page → duplicate render
-            // of the prior batch, and the intended page gets skipped.
-            if (prefetchedData) {
-                var prefPage = parseInt(prefetchedData.page, 10);
-                if (!isNaN(prefPage) && prefPage !== targetPage) {
-                    prefetchedData = null;
-                }
-            }
+			// 2026-06-18 hotfix: discard stale prefetch.
+			// Without this check, a prefetch in flight at init that returns
+			// AFTER the first loadNextPage has already issued its own fetch
+			// ends up as stale data for the wrong page, and the next trigger
+			// path appends it as if it were the new page → duplicate render
+			// of the prior batch, and the intended page gets skipped.
+			if (prefetchedData) {
+				var prefPage = parseInt(prefetchedData.page, 10);
+				if (!isNaN(prefPage) && prefPage !== targetPage) {
+					prefetchedData = null;
+				}
+			}
 
-            isLoading = true;
-            target.addClass('infinite-process');
-            loadingSpinner.removeClass('d-none hide');
-            currentPage = targetPage;
+			isLoading = true;
+			target.addClass('infinite-process');
+			loadingSpinner.removeClass('d-none hide');
+			currentPage = targetPage;
 
-            if (prefetchedData) {
-                var cached = prefetchedData;
-                prefetchedData = null;
-                appendProducts(cached);
-                finishLoad();
-                return;
-            }
+			if (prefetchedData) {
+				var cached = prefetchedData;
+				prefetchedData = null;
+				appendProducts(cached);
+				finishLoad();
+				return;
+			}
 
-            fetchPage(currentPage)
-                .done(function (response) {
-                    if (response.success) appendProducts(response.data);
-                })
-                .fail(function () {
-                    currentPage--;
-                })
-                .always(function () {
-                    finishLoad();
-                });
-        }
+			fetchPage(currentPage)
+				.done(function (response) {
+					if (response.success) appendProducts(response.data);
+				})
+				.fail(function () {
+					currentPage--;
+				})
+				.always(function () {
+					finishLoad();
+				});
+		}
 
-        function finishLoad() {
-            isLoading = false;
-            target.removeClass('infinite-process');
-            loadingSpinner.addClass('d-none hide');
+		function finishLoad() {
+			isLoading = false;
+			target.removeClass('infinite-process');
+			loadingSpinner.addClass('d-none hide');
 
-            if (currentPage >= maxPages) {
-                markDone();
-            } else {
-                prefetchNextPage();
-            }
-        }
+			if (currentPage >= maxPages) {
+				markDone();
+			} else {
+				prefetchNextPage();
+			}
+		}
 
-        // Check if loader is close enough to viewport to trigger loading.
-        // Uses getBoundingClientRect for reliability — works regardless
-        // of opacity, transforms, or layout shifts.
-        function isLoaderNearViewport() {
-            if (!loaderEl.length) return false;
-            var rect = loaderEl[0].getBoundingClientRect();
-            // Trigger 2000px before the loader comes into view.
-            return rect.top <= window.innerHeight + 2000;
-        }
+		// Check if loader is close enough to viewport to trigger loading.
+		// Uses getBoundingClientRect for reliability — works regardless
+		// of opacity, transforms, or layout shifts.
+		function isLoaderNearViewport() {
+			if (!loaderEl.length) return false;
+			var rect = loaderEl[0].getBoundingClientRect();
+			// Trigger 2000px before the loader comes into view.
+			return rect.top <= window.innerHeight + 2000;
+		}
 
-        // --- Triple detection: IntersectionObserver + scroll + interval ---
-        // All run in parallel to guarantee the trigger fires early.
+		// --- Triple detection: IntersectionObserver + scroll + interval ---
+		// All run in parallel to guarantee the trigger fires early.
 
-        var observer = null;
+		var observer = null;
 
-        // 1) IntersectionObserver with very large rootMargin.
-        if ('IntersectionObserver' in window && loaderEl.length) {
-            observer = new IntersectionObserver(function (entries) {
-                if (entries[0].isIntersecting && !isDone) {
-                    loadNextPage();
-                }
-            }, {
-                rootMargin: '0px 0px 2500px 0px',
-                threshold: 0
-            });
-            observer.observe(loaderEl[0]);
-        }
+		// 1) IntersectionObserver with very large rootMargin.
+		if ('IntersectionObserver' in window && loaderEl.length) {
+			observer = new IntersectionObserver(function (entries) {
+				if (entries[0].isIntersecting && !isDone) {
+					loadNextPage();
+				}
+			}, {
+				rootMargin: '0px 0px 2500px 0px',
+				threshold: 0
+			});
+			observer.observe(loaderEl[0]);
+		}
 
-        // 2) Scroll listener as backup (throttled to 100ms).
-        var scrollTimer = null;
-        $(window).on('scroll.infiniteScroll', function () {
-            if (scrollTimer || isDone) return;
-            scrollTimer = setTimeout(function () {
-                scrollTimer = null;
-                if (isLoaderNearViewport()) loadNextPage();
-            }, 100);
-        });
+		// 2) Scroll listener as backup (throttled to 100ms).
+		var scrollTimer = null;
+		$(window).on('scroll.infiniteScroll', function () {
+			if (scrollTimer || isDone) return;
+			scrollTimer = setTimeout(function () {
+				scrollTimer = null;
+				if (isLoaderNearViewport()) loadNextPage();
+			}, 100);
+		});
 
-        // 3) Polling interval — catches edge cases where scroll events
-        //    don't fire (e.g. container revealed via opacity transition,
-        //    resize, or programmatic scroll).
-        var pollInterval = setInterval(function () {
-            if (isDone) { clearInterval(pollInterval); return; }
-            if (isLoaderNearViewport()) loadNextPage();
-        }, 500);
+		// 3) Polling interval — catches edge cases where scroll events
+		//    don't fire (e.g. container revealed via opacity transition,
+		//    resize, or programmatic scroll).
+		var pollInterval = setInterval(function () {
+			if (isDone) { clearInterval(pollInterval); return; }
+			if (isLoaderNearViewport()) loadNextPage();
+		}, 500);
 
-        // 4) Prefetch page 2 immediately on init.
-        prefetchNextPage();
+		// 4) Prefetch page 2 immediately on init.
+		prefetchNextPage();
 
-        // 5) Run initial checks at multiple delays to catch various
-        //    DOM readiness states (especially the opacity:0 sidebar reveal).
-        [100, 300, 600, 1000].forEach(function (delay) {
-            setTimeout(function () {
-                if (isLoaderNearViewport() && !isDone) loadNextPage();
-            }, delay);
-        });
-    }
+		// 5) Run initial checks at multiple delays to catch various
+		//    DOM readiness states (especially the opacity:0 sidebar reveal).
+		[100, 300, 600, 1000].forEach(function (delay) {
+			setTimeout(function () {
+				if (isLoaderNearViewport() && !isDone) loadNextPage();
+			}, delay);
+		});
+	}
 	
 	function productModalAttributeDisplay() {
 		var target = $('.single-product .single_variation_wrap');
@@ -1737,8 +1759,8 @@
 		productSingleThumbnailSlider();
 		productSummarySection();
 		productSummaryColorSizesOptions();
-		productSummaryColorOrderSetGoldFirst();
-		//productSummaryColorOrderSetGoldFirstNew();
+		//productSummaryColorOrderSetGoldFirst();
+		productSummaryColorOrderSetGoldFirstNew();
 		productSummaryColorOrderOptions();
 		productSummaryPrice();
 		productQuickViewAccesoriesOptions();
